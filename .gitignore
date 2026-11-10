@@ -67,3 +67,6 @@ server.log
 /tests/
 /server.pid
 /dev.pid
+
+# user uploads (not part of the app)
+/upload/
