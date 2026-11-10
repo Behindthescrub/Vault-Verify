@@ -1,0 +1,114 @@
+// Recruiter tool — Prisma schema
+// Dev: SQLite (sandbox / local). Production: change provider to "postgresql"
+// for Supabase (see DEPLOY.md, one-line change).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & sessions ────────────────────────────────────────────────
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  company      String?
+  role         String   @default("user") // "user" | "superadmin"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  settings     UserSettings?
+  sessions     Session[]
+  checklists   Checklist[]
+  calculations Calculation[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─── Per-user calculator settings ────────────────────────────────────
+model UserSettings {
+  userId               String  @id
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName          String?
+  companyLogoUrl       String? // data URL or https URL shown in calculator header
+  gsaApiKey            String? // optional personal override of the platform key
+  defaultOnboardingPct Float   @default(22)
+  minW2               Float   @default(15)
+  otEnabled           Boolean @default(false)
+}
+
+// ─── Platform settings (managed by superadmin) ──────────────────────
+model PlatformSetting {
+  id               String  @id @default("main")
+  // Brevo transactional email
+  brevoApiKey      String?
+  brevoSenderEmail String  @default("no-reply@recruitertool.app")
+  brevoSenderName  String  @default("Recruiter tool")
+  emailTestMode    Boolean @default(true) // true = log only, no real sends
+  // Shared GSA Per Diem API key (users may override in their settings)
+  gsaApiKey        String?
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Skills checklists ──────────────────────────────────────────────
+model Checklist {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  templateKey     String    @default("rn") // rn | lpn | cna | pt | ot | rrt | custom
+  candidateName   String?
+  candidateEmail  String?
+  status          String    @default("draft") // draft | sent | submitted
+  submittedVia   String? // "link" | "manual" — set on completion
+  token           String    @unique @default(cuid())
+  itemsJson       String // [{category, skills:[string]}]
+  inviteSentAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  response        ChecklistResponse?
+}
+
+model ChecklistResponse {
+  id          String   @id @default(cuid())
+  checklistId String   @unique
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  ratingsJson String // {"<skill>": 1..5}
+  avgRating   Float?
+  completedAt DateTime @default(now())
+}
+
+// ─── Saved calculator runs ───────────────────────────────────────────
+model Calculation {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  inputJson  String // full set of calculator inputs
+  resultJson String // snapshot of computed outputs
+  createdAt  DateTime @default(now())
+}
+
+// ─── Email log (Brevo sends & test-mode entries) ─────────────────────
+model EmailLog {
+  id        String   @id @default(cuid())
+  toEmail   String
+  subject   String
+  purpose   String // invite | test
+  status    String // sent | failed | test-mode
+  error     String?
+  createdAt DateTime @default(now())
+}

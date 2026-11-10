@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bill-to-Pay Staffing Calculator</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(26,42,108,0.08), transparent 60%),
+      linear-gradient(180deg,#f6f8fc 0%, #eef2f9 100%);
+    min-height:100vh;
+    padding:28px 18px;
+    color:#0f172a;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:#c7d2fe;color:#1e1b4b}
+
+  .card{
+    max-width:1100px;margin:0 auto;background:#fff;
+    border-radius:24px;
+    box-shadow:0 1px 0 rgba(15,23,42,0.04), 0 12px 40px rgba(15,23,42,0.08), 0 30px 80px -20px rgba(79,70,229,0.18);
+    overflow:hidden;border:1px solid #eef1f6;
+  }
+
+  /* ===== Header ===== */
+  .header{
+    padding:26px 34px;
+    background:
+      radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.35), transparent 60%),
+      linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%);
+    color:#fff;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    position:relative;
+  }
+  .header::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
+    background:linear-gradient(90deg,#818cf8,#4f46e5,#22d3ee);
+  }
+  .header .logo{
+    width:56px;height:56px;border-radius:14px;
+    background:rgba(255,255,255,0.10);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    flex-shrink:0;font-size:24px;border:1px solid rgba(255,255,255,0.15);
+  }
+  .header .logo img{width:100%;height:100%;object-fit:cover}
+  .header h1{margin:0 0 4px;font-size:22px;font-weight:800;letter-spacing:-0.2px}
+  .header .sub{color:#a8b8d8;font-size:13px;margin:0;font-weight:500;letter-spacing:0.1px}
+
+  .flow-track{display:flex;gap:8px;padding:14px 34px 18px;background:linear-gradient(180deg,#0a1628,#0d1a35);flex-wrap:wrap}
+  .flow-step{
+    font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;
+    background:rgba(255,255,255,0.06);color:#cbd5e1;
+    padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);
+  }
+  .flow-step.active{background:#4f46e5;color:#fff;border-color:#6366f1;box-shadow:0 0 0 3px rgba(79,70,229,0.25)}
+  .flow-step .arrow{opacity:.4;margin:0 6px}
+
+  /* ===== Sections ===== */
+  section{padding:28px 34px;border-bottom:1px solid #eef1f6}
+  section:last-child{border-bottom:0}
+  h2{
+    font-size:17px;margin:0 0 6px;color:#0f172a;font-weight:800;
+    display:flex;align-items:center;gap:12px;letter-spacing:-0.2px;
+  }
+  h2 .num{
+    width:26px;height:26px;border-radius:8px;
+    background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;
+    font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;box-shadow:0 4px 10px rgba(79,70,229,0.35);
+  }
+  .section-desc{font-size:12.5px;color:#64748b;margin:0 0 18px 38px;line-height:1.55}
+
+  /* ===== Inputs ===== */
+  .grid{display:grid;gap:14px}
+  .five{grid-template-columns:repeat(5,1fr)}
+  .four{grid-template-columns:repeat(4,1fr)}
+  .two{grid-template-columns:repeat(2,1fr)}
+  label{
+    display:block;font-size:10.5px;font-weight:700;color:#334155;
+    margin-bottom:7px;letter-spacing:0.6px;text-transform:uppercase;
+  }
+  label .hint{display:block;font-size:10.5px;font-weight:500;color:#94a3b8;text-transform:none;margin-top:3px;letter-spacing:0}
+  input,select{
+    width:100%;height:46px;border:1px solid #d8dee9;border-radius:12px;
+    padding:0 14px;font-size:14px;font-weight:500;background:#fff;color:#0f172a;
+    transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+    font-family:inherit;
+  }
+  input:hover,select:hover{border-color:#b8c2d4}
+  input:focus,select:focus{
+    outline:none;border-color:#4f46e5;
+    box-shadow:0 0 0 4px rgba(79,70,229,0.12);
+    background:#fff;
+  }
+  input[type=password]{font-size:13px;letter-spacing:0.5px}
+  input[type=file]{padding:9px 10px;height:auto;font-size:12px}
+  input[type=number]{font-variant-numeric:tabular-nums}
+
+  button{
+    height:46px;border:0;border-radius:12px;padding:0 22px;
+    font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;
+    transition:transform .15s ease,box-shadow .15s ease,background .15s ease,opacity .15s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  }
+  button:active{transform:translateY(1px)}
+  .btn-primary{
+    background:linear-gradient(180deg,#6366f1,#4338ca);color:#fff;
+    box-shadow:0 4px 14px rgba(79,70,229,0.30), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .btn-primary:hover{background:linear-gradient(180deg,#4f46e5,#3730a3);box-shadow:0 6px 20px rgba(79,70,229,0.40);transform:translateY(-1px)}
+  .btn-success{background:linear-gradient(180deg,#10b981,#059669);color:#fff;box-shadow:0 4px 14px rgba(5,150,105,0.30)}
+  .btn-success:hover{background:linear-gradient(180deg,#059669,#047857);transform:translateY(-1px)}
+  .btn-danger{background:linear-gradient(180deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,0.25)}
+  .btn-danger:hover{transform:translateY(-1px);background:linear-gradient(180deg,#dc2626,#b91c1c)}
+  .btn-ghost{background:#f1f4f9;color:#475569;box-shadow:none}
+  .btn-ghost:hover{background:#e5e9f0}
+  .btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+  /* ===== Toggle pills ===== */
+  .toggle-row{display:inline-flex;gap:4px;padding:5px;background:#eef1f7;border-radius:14px;border:1px solid #e2e7f0}
+  .toggle-row label{
+    position:relative;display:flex;align-items:center;gap:8px;
+    font-weight:700;font-size:13px;color:#64748b;text-transform:none;letter-spacing:0;
+    cursor:pointer;padding:9px 18px;border-radius:10px;margin:0;
+    transition:color .15s ease,background .15s ease;
+  }
+  .toggle-row label:hover{color:#334155}
+  .toggle-row input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+  .toggle-row label:has(input:checked){
+    background:#fff;color:#1a2a6c;
+    box-shadow:0 2px 8px rgba(26,42,108,0.12), inset 0 0 0 1px rgba(79,70,229,0.15);
+  }
+  .toggle-row label:has(input:checked)::before{content:'';width:8px;height:8px;border-radius:50%;background:#4f46e5;flex-shrink:0}
+
+  /* ===== Status ===== */
+  .status{padding:11px 14px;background:#f8fafc;border-radius:10px;color:#64748b;font-size:13px;margin-top:14px;border-left:3px solid #cbd5e1;line-height:1.5}
+  .status.error{border-left-color:#dc2626;color:#dc2626;background:#fef2f2}
+  .status.success{border-left-color:#10b981;color:#059669;background:#ecfdf5}
+
+  /* ===== Results ===== */
+  .results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:18px}
+  .result-box{
+    background:linear-gradient(180deg,#fbfcfe,#f5f7fb);
+    border:1px solid #eaeef5;border-radius:14px;padding:14px 16px;
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .result-box:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,0.06)}
+  .result-box.highlight{
+    background:linear-gradient(180deg,#eef2ff,#e0e7ff);border-color:#c7d2fe;
+  }
+  .result-box .label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.7px}
+  .result-box .value{font-size:21px;font-weight:800;margin-top:5px;color:#0f172a;font-variant-numeric:tabular-nums;letter-spacing:-0.3px}
+  .result-box .sub{font-size:11.5px;color:#94a3b8;margin-top:3px;font-weight:500}
+  .value.good{color:#059669}
+  .value.bad{color:#dc2626}
+
+
+  .stipend-box{background:#fafbff;border:1px solid #eaeef5;border-radius:14px;padding:18px;margin-top:14px}
+  .hidden{display:none !important}
+  .pd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+  .pd-grid .result-box .value{font-size:18px}
+
+  /* ===== Admin ===== */
+  .admin-toggle{
+    text-align:center;padding:14px;
+    background:linear-gradient(180deg,#f8fafc,#eef1f7);
+    border-top:1px solid #eef1f6;
+  }
+  .admin-toggle button{
+    background:transparent;border:0;color:#64748b;font-size:13px;cursor:pointer;
+    text-decoration:none;font-weight:600;height:auto;padding:8px 14px;border-radius:8px;
+    transition:background .15s ease,color .15s ease;
+  }
+  .admin-toggle button:hover{background:#e5e9f0;color:#1a2a6c}
+  .admin-box{max-width:560px;margin:0 auto}
+  .admin-box h3{margin-top:0;color:#0f172a;font-size:18px;display:flex;align-items:center;gap:8px}
+  .form-group{margin-bottom:14px}
+  .form-group label{font-size:11px}
+  .logo-preview{
+    width:64px;height:64px;border-radius:14px;border:1px solid #d8dee9;
+    background:#f8fafc;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;font-size:24px;color:#94a3b8;margin-bottom:10px;
+  }
+  .logo-preview img{width:100%;height:100%;object-fit:cover}
+
+  .note{margin-top:10px;color:#94a3b8;font-size:11.5px;padding:10px 14px;background:#f8fafc;border-radius:10px;line-height:1.6}
+
+  /* ===== Hidden breakdown grid (revealed on click) ===== */
+  .secret-grid{display:none}
+  .secret-grid.revealed{display:grid;animation:revealIn .25s ease}
+  @keyframes revealIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .two-cols{grid-template-columns:repeat(2,1fr)}
+
+  .reveal-btn{
+    height:32px;padding:0 14px;font-size:12px;font-weight:700;
+    background:#f1f4f9;color:#475569;border:1px solid #d8dee9;
+    border-radius:999px;cursor:pointer;font-family:inherit;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:background .15s ease,color .15s ease,border-color .15s ease;
+  }
+  .reveal-btn:hover{background:#e5e9f0;color:#1a2a6c;border-color:#b8c2d4}
+  .reveal-btn .ico{font-size:14px;line-height:1}
+  .reveal-btn.revealed{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+
+  /* ===== Traveler toggle (iOS-style switch) ===== */
+  .traveler-toggle{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 18px;border-radius:14px;margin-bottom:18px;
+    background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;
+    transition:background .2s ease,border-color .2s ease;
+  }
+  .traveler-toggle.on{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:#bbf7d0}
+  .traveler-toggle .meta{flex:1}
+  .traveler-toggle .meta strong{display:block;font-size:14px;font-weight:700;color:#0f172a;letter-spacing:-0.1px}
+  .traveler-toggle.on .meta strong{color:#047857}
+  .traveler-toggle .meta span{display:block;font-size:12px;color:#64748b;margin-top:2px;line-height:1.5}
+
+  .switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .switch .slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:999px;transition:background .2s ease}
+  .switch .slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform .2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+  .switch input:checked + .slider{background:linear-gradient(180deg,#10b981,#059669)}
+  .switch input:checked + .slider::before{transform:translateX(20px)}
+
+  /* ===== Split results ===== */
+  .split-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+  .split-grid .result-box .value{font-size:18px}
+  .badge{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:0.5px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge.tax{background:#fee2e2;color:#b91c1c}
+  .badge.nontax{background:#dcfce7;color:#15803d}
+  .local-banner{
+    padding:12px 16px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;
+    color:#3730a3;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;
+  }
+  .local-banner .ico{font-size:18px}
+
+  /* ===== Overtime toggle row (matches Traveler toggle pattern) ===== */
+  .ot-toggle{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 18px;border-radius:14px;margin-top:14px;
+    background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;
+    transition:background .2s ease,border-color .2s ease;
+  }
+  .ot-toggle.on{background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#fde68a}
+  .ot-toggle.on.active{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.12)}
+  .ot-toggle .meta{flex:1}
+  .ot-toggle .meta strong{display:block;font-size:14px;font-weight:700;color:#0f172a;letter-spacing:-0.1px}
+  .ot-toggle.on .meta strong{color:#92400e}
+  .ot-toggle.on.active .meta strong{color:#b45309}
+  .ot-toggle .meta span{display:block;font-size:12px;color:#64748b;margin-top:2px;line-height:1.5}
+
+  .ot-inputs-wrap{
+    margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:14px;
+    padding:14px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;
+  }
+  .ot-inputs-wrap label{color:#78350f}
+  .ot-inputs-wrap .hint{color:#a16207}
+
+  /* ===== Responsive ===== */
+  @media(max-width:900px){
+    .five{grid-template-columns:repeat(3,1fr)}
+    .four{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:768px){
+    .five,.four,.two{grid-template-columns:1fr 1fr}
+    .header{padding:20px}
+    section{padding:20px}
+    .pd-grid{grid-template-columns:1fr 1fr}
+    .results-grid{grid-template-columns:1fr 1fr}
+    .section-desc{margin-left:0}
+    .flow-track{padding:12px 20px}
+  }
+  @media(max-width:480px){
+    body{padding:12px}
+    .five,.four,.two,.pd-grid,.results-grid{grid-template-columns:1fr}
+    .header h1{font-size:19px}
+    .header{padding:18px}
+    section{padding:18px}
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ===== Header ===== -->
+  <div class="header">
+    <div class="logo" id="headerLogo">🇺🇸</div>
+    <div>
+      <h1 id="headerCompanyName">Bill-to-Pay Staffing Calculator</h1>
+      <p class="sub">Margin → Traveler Stipend Split</p>
+    </div>
+  </div>
+
+  <div class="flow-track">
+    <span class="flow-step active">1. Margin Calculator</span>
+    <span class="flow-step"><span class="arrow">→</span> 2. Stipend Split</span>
+    <span class="flow-step"><span class="arrow">→</span> Admin</span>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== SECTION 1: STAFFING MARGIN CALCULATOR ================= -->
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">1</span> Staffing Margin Calculator
+      <button type="button" class="reveal-btn" id="revealBtn" onclick="toggleSecrets()">
+        <span class="ico">👁</span><span id="revealLabel">Reveal breakdown</span>
+      </button>
+    </h2>
+    <p class="section-desc">Onboarding % is the all-in cost overhead — payroll burden, drug test, background check, tools, everything. Default is set in the Admin Panel. Click <strong>Reveal breakdown</strong> to see the cost components behind the margin.</p>
+
+    <div class="grid five">
+      <div>
+        <label>Bill Rate ($/hr)</label>
+        <input id="billRate" type="number" value="75" step="0.01" min="0">
+      </div>
+      <div>
+        <label>MSP Fee (%)</label>
+        <input id="mspFee" type="number" value="5" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Candidate Pay ($/hr)</label>
+        <input id="payRate" type="number" value="50" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Onboarding (%)<span class="hint">payroll, drug/bg test, tools — set default in Admin</span></label>
+        <input id="onboardingPct" type="number" value="22" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Hours / Week</label>
+        <input id="hoursPerWeek" type="number" value="36" step="0.5" min="1">
+      </div>
+    </div>
+
+    <!-- Overtime toggle (off by default) -->
+    <div class="ot-toggle" id="otBox">
+      <label class="switch">
+        <input type="checkbox" id="otToggle" onchange="toggleOT()">
+        <span class="slider"></span>
+      </label>
+      <div class="meta">
+        <strong id="otTitle">Overtime — off</strong>
+        <span id="otSub">Toggle on if this contract includes overtime pay (e.g. over 40 hrs/wk at 1.5×).</span>
+      </div>
+    </div>
+    <div id="otInputsWrap" class="ot-inputs-wrap hidden">
+      <div>
+        <label>OT Threshold (hrs/wk)<span class="hint">Hours above this trigger OT</span></label>
+        <input id="otThreshold" type="number" value="40" step="0.5" min="1">
+      </div>
+      <div>
+        <label>OT Multiplier<span class="hint">e.g. 1.5 = time-and-a-half</span></label>
+        <input id="otMultiplier" type="number" value="1.5" step="0.01" min="1">
+      </div>
+    </div>
+
+    <!-- Always visible: Margin / Hour + Total Weekly Pay Package -->
+    <div class="results-grid two-cols">
+      <div class="result-box highlight">
+        <div class="label">Margin / Hour</div>
+        <div class="value good" id="marginAmount">$10.25/hr</div>
+      </div>
+      <div class="result-box highlight">
+        <div class="label">Total Weekly Pay Package</div>
+        <div class="value" id="totalWeeklyPay">$1,800.00</div>
+        <div class="sub" id="totalWeeklyPaySub">Candidate Pay × Hours → feeds Step 2 cap reference</div>
+      </div>
+    </div>
+
+    <!-- Hidden by default: 5 breakdown boxes (revealed on click) -->
+    <div class="results-grid secret-grid" id="secretGrid">
+      <div class="result-box">
+        <div class="label">MSP Fee</div>
+        <div class="value" id="mspAmount">$3.75/hr</div>
+      </div>
+      <div class="result-box highlight">
+        <div class="label">Net Bill</div>
+        <div class="value" id="netBill">$71.25/hr</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Onboarding Cost</div>
+        <div class="value" id="onboardingCost">$11.00/hr</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Cost to Company</div>
+        <div class="value" id="costToCompany">$61.00/hr</div>
+      </div>
+      <div class="result-box highlight">
+        <div class="label">Margin %</div>
+        <div class="value" id="marginPercent">14.39%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ===== SECTION 2: GSA PER DIEM / STIPEND SPLIT =============== -->
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">2</span> GSA Per Diem / Stipend Split</h2>
+    <p class="section-desc">Turn on the Traveler toggle if the candidate commutes 50+ miles from the facility — this unlocks the stipend (non-taxable) split. Otherwise, the entire pay package goes to W2.</p>
+
+    <!-- Traveler toggle -->
+    <div class="traveler-toggle" id="travelerBox">
+      <label class="switch">
+        <input type="checkbox" id="travelerToggle" onchange="toggleTraveler()">
+        <span class="slider"></span>
+      </label>
+      <div class="meta">
+        <strong id="travelerTitle">Local candidate — full pay on W2</strong>
+        <span id="travelerSub">Toggle on if the candidate travels 50+ miles — enables GSA stipend (non-taxable) split.</span>
+      </div>
+    </div>
+
+    <!-- Stipend input area (only when traveler is ON) -->
+    <div id="stipendInputArea" class="hidden">
+      <div class="toggle-row">
+        <label><input type="radio" name="stipendSource" value="manual" checked onchange="toggleStipendSource()"> Manual entry</label>
+        <label><input type="radio" name="stipendSource" value="auto" onchange="toggleStipendSource()"> Live GSA fetch</label>
+      </div>
+
+      <div id="manualStipendWrap" class="stipend-box">
+        <div class="grid two">
+          <div>
+            <label>Daily Lodging ($)</label>
+            <input id="manLodging" type="number" value="159" step="0.01" min="0" oninput="recalcManualStipend()">
+          </div>
+          <div>
+            <label>Daily M&amp;IE ($)</label>
+            <input id="manMeals" type="number" value="79" step="0.01" min="0" oninput="recalcManualStipend()">
+          </div>
+        </div>
+        <div class="note">Or skip lodging/M&amp;IE and type the weekly stipend directly below.</div>
+        <div style="margin-top:10px">
+          <label>Weekly Stipend ($) — overrides the fields above if edited</label>
+          <input id="manualStipendAmount" type="number" value="1666" step="0.01" min="0">
+        </div>
+      </div>
+
+      <div id="autoStipendWrap" class="stipend-box hidden">
+        <div class="grid four">
+          <div>
+            <label>City</label>
+            <input id="pdCity" placeholder="e.g. New York" value="New York">
+          </div>
+          <div>
+            <label>State</label>
+            <input id="pdState" maxlength="2" placeholder="NY" value="NY">
+          </div>
+          <div>
+            <label>ZIP (optional)</label>
+            <input id="pdZip" placeholder="10001">
+          </div>
+          <div>
+            <label>Fiscal Year</label>
+            <input id="pdYear" type="number" value="2026" min="2024">
+          </div>
+        </div>
+        <div class="grid two" style="margin-top:12px">
+          <div>
+            <label>Month</label>
+            <select id="pdMonth">
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8" selected>August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn-primary" onclick="fetchPerDiem()">🔄 Fetch GSA Per Diem</button>
+        </div>
+        <div id="pdStatus" class="status">Set your GSA API key in Admin, then fetch.</div>
+      </div>
+    </div>
+
+    <!-- Local mode banner (only when traveler is OFF) -->
+    <div id="localBanner" class="local-banner">
+      <span class="ico">📍</span>
+      <span>Local candidate — entire pay package goes to W2 (taxable). No stipend applied.</span>
+    </div>
+
+    <!-- Always-visible split results -->
+    <div class="split-grid">
+      <div class="result-box highlight">
+        <div class="label">Total Weekly Pay</div>
+        <div class="value" id="splitTotalWeekly">$0.00</div>
+        <div class="sub">Candidate gross package</div>
+      </div>
+      <div class="result-box highlight">
+        <div class="label">Stipend Weekly <span class="badge nontax" id="stipendBadge" style="display:none">Non-tax</span></div>
+        <div class="value" id="splitStipendWeekly">$0.00</div>
+        <div class="sub" id="splitStipendSub">No stipend (local)</div>
+      </div>
+      <div class="result-box highlight">
+        <div class="label">W2 Weekly <span class="badge tax" id="w2Badge">Tax</span></div>
+        <div class="value" id="splitW2Weekly">$0.00</div>
+        <div class="sub">Taxable wages</div>
+      </div>
+      <div class="result-box">
+        <div class="label">W2 Hourly</div>
+        <div class="value" id="splitW2Hourly">$0.00/hr</div>
+        <div class="sub" id="splitW2Sub">= Candidate Pay</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ===== ADMIN TOGGLE / PANEL ================================== -->
+  <!-- ============================================================ -->
+  <div class="admin-toggle">
+    <button onclick="toggleAdmin()">⚙️ Admin Panel</button>
+  </div>
+
+  <section id="adminSection" class="hidden">
+    <div id="adminLogin" class="admin-box">
+      <h3>🔐 Admin Access</h3>
+      <p style="color:#64748b;font-size:14px;margin-top:0">Enter the admin password to access settings</p>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="adminPassword" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')loginAdmin()">
+      </div>
+      <button class="btn-primary" onclick="loginAdmin()">Login</button>
+      <div id="loginStatus" style="margin-top:10px;color:#dc2626;font-size:13px;font-weight:600"></div>
+    </div>
+
+    <div id="adminSettings" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <h3 style="margin:0;color:#0f172a;font-size:18px;display:flex;align-items:center;gap:8px">⚙️ Admin Settings</h3>
+        <button class="btn-danger" onclick="logoutAdmin()" style="height:38px;padding:0 16px;font-size:13px">Logout</button>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <div class="form-group">
+            <label>Company Name</label>
+            <input id="adminCompanyName" placeholder="Your Company Name">
+          </div>
+          <div class="form-group">
+            <label>Company Logo</label>
+            <div class="logo-preview" id="adminLogoPreview">🏢</div>
+            <input id="adminLogoFile" type="file" accept="image/*" onchange="handleLogoUpload(event)">
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>GSA API Key</label>
+            <input id="adminGSAKey" type="password" placeholder="Get at api.data.gov">
+            <div class="hint" style="font-size:11px;color:#94a3b8;margin-top:5px">Used for the live GSA Per Diem fetch in Step 2.</div>
+          </div>
+          <div class="form-group">
+            <label>Default Onboarding (%)</label>
+            <input id="adminOnboardingPct" type="number" value="22" step="0.01" min="0">
+            <div class="hint" style="font-size:11px;color:#94a3b8;margin-top:5px">Payroll burden, drug/background test, tools — the all-in cost overhead. Sets the default value of Onboarding % in Step 1 (still editable per calculation).</div>
+          </div>
+          <div class="form-group">
+            <label>Minimum W2 Pay ($/hr)</label>
+            <input id="adminMinW2" type="number" value="15" step="0.01" min="0">
+            <div class="hint" style="font-size:11px;color:#94a3b8;margin-top:5px">Hard floor for W2 hourly. If a stipend split would push W2 below this rate, the calculator shifts money from stipend into W2 to maintain it.</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveAdminSettings()" style="margin-top:10px">💾 Save Settings</button>
+      <div id="adminStatus" style="margin-top:12px;font-size:13px;color:#059669;font-weight:600"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const num = id => Number($(id).value) || 0;
+const money = x => '$' + Number(x || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+// ============================================================
+// STATE / ADMIN SETTINGS
+// ============================================================
+let adminLoggedIn = false;
+let manualStipendTouched = false;
+let onboardingPctTouched = false;
+let settings = {
+  companyName: '',
+  companyLogo: '',
+  gsaApiKey: '',
+  onboardingPct: 22,
+  minW2: 15,
+  otEnabled: false
+};
+
+function loadSettings() {
+  const saved = localStorage.getItem('billToPaySettings');
+  if (saved) {
+    try { settings = { ...settings, ...JSON.parse(saved) }; } catch(e) {}
+  }
+  applySettingsToHeader();
+  $('adminCompanyName').value = settings.companyName;
+  $('adminGSAKey').value = settings.gsaApiKey || '';
+  $('adminOnboardingPct').value = settings.onboardingPct;
+  $('adminMinW2').value = settings.minW2;
+  // Restore OT toggle state
+  $('otToggle').checked = !!settings.otEnabled;
+  applyOTToggleUI();
+  if (settings.companyLogo) {
+    $('adminLogoPreview').innerHTML = `<img src="${settings.companyLogo}">`;
+  }
+  if (!onboardingPctTouched) {
+    $('onboardingPct').value = settings.onboardingPct;
+  }
+}
+
+function applySettingsToHeader() {
+  $('headerCompanyName').textContent = settings.companyName || 'Bill-to-Pay Staffing Calculator';
+  if (settings.companyLogo) {
+    $('headerLogo').innerHTML = `<img src="${settings.companyLogo}">`;
+  } else {
+    $('headerLogo').textContent = '🇺🇸';
+  }
+}
+
+function handleLogoUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    settings.companyLogo = e.target.result;
+    $('adminLogoPreview').innerHTML = `<img src="${settings.companyLogo}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleAdmin() {
+  $('adminSection').classList.toggle('hidden');
+}
+
+function loginAdmin() {
+  const password = $('adminPassword').value;
+  if (password === 'Shaswat@0047') {
+    adminLoggedIn = true;
+    $('adminLogin').style.display = 'none';
+    $('adminSettings').classList.remove('hidden');
+    $('loginStatus').textContent = '';
+    loadSettings();
+  } else {
+    $('loginStatus').textContent = '❌ Incorrect password. Try again.';
+  }
+}
+
+function logoutAdmin() {
+  adminLoggedIn = false;
+  $('adminLogin').style.display = 'block';
+  $('adminSettings').classList.add('hidden');
+  $('adminPassword').value = '';
+}
+
+function saveAdminSettings() {
+  settings.companyName = $('adminCompanyName').value.trim();
+  settings.gsaApiKey = $('adminGSAKey').value.trim();
+  settings.onboardingPct = parseFloat($('adminOnboardingPct').value) || 0;
+  settings.minW2 = parseFloat($('adminMinW2').value) || 0;
+
+  localStorage.setItem('billToPaySettings', JSON.stringify(settings));
+  applySettingsToHeader();
+  if (!onboardingPctTouched) {
+    $('onboardingPct').value = settings.onboardingPct;
+  }
+  calcSection1();
+
+  $('adminStatus').textContent = '✅ Settings saved successfully!';
+  setTimeout(() => $('adminStatus').textContent = '', 3000);
+}
+
+// ============================================================
+// SECTION 1: STAFFING MARGIN CALCULATOR
+// ============================================================
+function calcSection1() {
+  const bill = num('billRate');
+  const msp = num('mspFee') / 100;
+  const pay = num('payRate');
+  const onboardPct = num('onboardingPct') / 100;
+  const hours = Math.max(0.01, num('hoursPerWeek'));
+  const otEnabled = $('otToggle').checked;
+  const otThreshold = otEnabled ? Math.max(0, num('otThreshold')) : 0;
+  const otMultiplier = otEnabled ? Math.max(1, num('otMultiplier')) : 1;
+  const travelerMode = $('travelerToggle').checked;
+  const minW2 = settings.minW2 || 0;
+
+  // === Overtime split (only when OT toggle is on) ===
+  let regHours = hours;
+  let otHours = 0;
+  if (otThreshold > 0 && hours > otThreshold) {
+    regHours = otThreshold;
+    otHours = hours - otThreshold;
+  }
+  const otActive = otHours > 0;
+  $('otBox').classList.toggle('active', otActive);
+
+  // === Candidate pay side (weekly totals) ===
+  const regPay = pay * regHours;
+  const otPay = pay * otMultiplier * otHours;
+  const totalWeeklyPay = regPay + otPay;
+  const blendedPayHourly = hours > 0 ? totalWeeklyPay / hours : pay;
+
+  // === Bill side (weekly totals) ===
+  const regBill = bill * regHours;
+  const otBill = bill * otMultiplier * otHours;
+  const totalWeeklyBill = regBill + otBill;
+  const mspAmtWeekly = totalWeeklyBill * msp;
+  const netBillWeekly = totalWeeklyBill - mspAmtWeekly;
+  const blendedMspHourly = hours > 0 ? mspAmtWeekly / hours : 0;
+  const blendedNetBillHourly = hours > 0 ? netBillWeekly / hours : 0;
+
+  // === Stipend split (traveler mode) ===
+  let stipendWeekly = 0;
+  if (travelerMode) {
+    stipendWeekly = Math.min(currentStipendWeekly, totalWeeklyPay);
+  }
+  let stipendHourly = hours > 0 ? stipendWeekly / hours : 0;
+  let w2Weekly = totalWeeklyPay - stipendWeekly;
+  let w2Hourly = hours > 0 ? w2Weekly / hours : 0;
+
+  // === Minimum W2 floor (on blended W2 hourly) ===
+  let minWageApplied = false;
+  let minWageUndersold = false;
+  if (minW2 > 0) {
+    if (travelerMode) {
+      if (blendedPayHourly < minW2) {
+        // Total pay too low to ever meet the floor
+        w2Hourly = blendedPayHourly;
+        stipendHourly = 0;
+        stipendWeekly = 0;
+        w2Weekly = totalWeeklyPay;
+        minWageUndersold = true;
+      } else if (w2Hourly < minW2) {
+        // Raise W2 to the floor; pull the difference from stipend
+        w2Hourly = minW2;
+        w2Weekly = minW2 * hours;
+        stipendWeekly = Math.max(0, totalWeeklyPay - w2Weekly);
+        stipendHourly = hours > 0 ? stipendWeekly / hours : 0;
+        minWageApplied = true;
+      }
+    } else {
+      if (w2Hourly < minW2) {
+        minWageUndersold = true;
+      }
+    }
+  }
+
+  // === Onboarding on W2 portion only (blended) ===
+  const onboardCostHourly = w2Hourly * onboardPct;
+  const costToCompanyHourly = blendedPayHourly + onboardCostHourly;
+
+  // === Margin (blended hourly) ===
+  const marginHourly = blendedNetBillHourly - costToCompanyHourly;
+  const marginPct = blendedNetBillHourly !== 0 ? (marginHourly / blendedNetBillHourly) * 100 : 0;
+
+  // === Section 1 always-visible summary ===
+  $('marginAmount').textContent = money(marginHourly) + '/hr';
+  $('marginAmount').className = 'value ' + (marginHourly >= 0 ? 'good' : 'bad');
+  $('totalWeeklyPay').textContent = money(totalWeeklyPay);
+  // Total weekly subtext: show OT breakdown when applicable
+  if (otActive) {
+    $('totalWeeklyPaySub').innerHTML =
+      money(regPay) + ' reg + ' + money(otPay) +
+      ' OT (' + otHours + 'h @ ' + otMultiplier + '×)';
+  } else {
+    $('totalWeeklyPaySub').textContent = 'Candidate Pay × Hours → feeds Step 2 cap reference';
+  }
+
+  // === Section 1 hidden breakdown (blended hourly) ===
+  $('mspAmount').textContent = money(blendedMspHourly) + '/hr';
+  $('netBill').textContent = money(blendedNetBillHourly) + '/hr';
+  $('onboardingCost').textContent = money(onboardCostHourly) + '/hr';
+  $('costToCompany').textContent = money(costToCompanyHourly) + '/hr';
+  $('marginPercent').textContent = marginPct.toFixed(2) + '%';
+  $('marginPercent').className = 'value ' + (marginPct >= 0 ? 'good' : 'bad');
+
+  // === Section 2 split outputs (always visible) ===
+  $('splitTotalWeekly').textContent = money(totalWeeklyPay);
+  $('splitStipendWeekly').textContent = money(stipendWeekly);
+  $('splitW2Weekly').textContent = money(w2Weekly);
+  $('splitW2Hourly').textContent = money(w2Hourly) + '/hr';
+
+  // === W2 subtext adapts to OT + min-wage floor state ===
+  const w2Box = $('splitW2Hourly').closest('.result-box');
+  if (minWageUndersold) {
+    $('splitW2Sub').innerHTML = '<span style="color:#dc2626;font-weight:600">⚠ Below min W2 $' + minW2.toFixed(2) + '/hr</span>';
+    w2Box.classList.toggle('highlight', true);
+  } else if (minWageApplied) {
+    $('splitW2Sub').innerHTML = '<span style="color:#b45309;font-weight:600">↳ raised to min W2 $' + minW2.toFixed(2) + '/hr</span>';
+    w2Box.classList.toggle('highlight', true);
+  } else {
+    $('splitW2Sub').textContent = travelerMode ? '= Total − Stipend' : '= Candidate Pay';
+    w2Box.classList.toggle('highlight', !travelerMode);
+  }
+
+  if (travelerMode) {
+    $('splitStipendSub').textContent = stipendWeekly > 0
+      ? (minWageApplied ? 'Reduced to keep W2 at min' : 'Non-taxable (GSA)')
+      : 'Stipend is $0 — full pay on W2';
+    $('stipendBadge').style.display = stipendWeekly > 0 ? 'inline-block' : 'none';
+  } else {
+    $('splitStipendSub').textContent = 'No stipend (local)';
+    $('stipendBadge').style.display = 'none';
+  }
+
+  return { bill, netBill: blendedNetBillHourly, pay, hours, totalWeeklyPay, margin: marginHourly, marginPct, travelerMode, stipendWeekly, w2Hourly, minWageApplied, minWageUndersold, otHours, otMultiplier, regHours };
+}
+
+function toggleSecrets() {
+  const grid = $('secretGrid');
+  const revealed = grid.classList.toggle('revealed');
+  const btn = $('revealBtn');
+  btn.classList.toggle('revealed', revealed);
+  btn.querySelector('.ico').textContent = revealed ? '🙈' : '👁';
+  $('revealLabel').textContent = revealed ? 'Hide breakdown' : 'Reveal breakdown';
+}
+
+// ============================================================
+// OVERTIME TOGGLE
+// ============================================================
+function applyOTToggleUI() {
+  const on = $('otToggle').checked;
+  const box = $('otBox');
+  box.classList.toggle('on', on);
+  $('otInputsWrap').classList.toggle('hidden', !on);
+  $('otTitle').textContent = on ? 'Overtime — enabled' : 'Overtime — off';
+  $('otSub').textContent = on
+    ? 'OT applies to hours above the threshold. Toggle off for straight-time contracts.'
+    : 'Toggle on if this contract includes overtime pay (e.g. over 40 hrs/wk at 1.5×).';
+}
+
+function toggleOT() {
+  applyOTToggleUI();
+  // Persist preference so it survives reloads
+  settings.otEnabled = $('otToggle').checked;
+  localStorage.setItem('billToPaySettings', JSON.stringify(settings));
+  calcSection1();
+}
+
+['billRate','mspFee','payRate','onboardingPct','hoursPerWeek','otThreshold','otMultiplier'].forEach(id =>
+  $(id).addEventListener('input', () => { calcSection1(); })
+);
+$('onboardingPct').addEventListener('input', () => { onboardingPctTouched = true; });
+
+// ============================================================
+// SECTION 2: TRAVELER TOGGLE + STIPEND (MANUAL / AUTO)
+// ============================================================
+function toggleTraveler() {
+  const on = $('travelerToggle').checked;
+  const box = $('travelerBox');
+  box.classList.toggle('on', on);
+  $('stipendInputArea').classList.toggle('hidden', !on);
+  $('localBanner').classList.toggle('hidden', on);
+  $('travelerTitle').textContent = on
+    ? 'Traveler — stipend split active (50+ miles)'
+    : 'Local candidate — full pay on W2';
+  $('travelerSub').textContent = on
+    ? 'Stipend (non-taxable) is split from W2 (taxable). Onboarding % applies only to the W2 portion.'
+    : 'Toggle on if the candidate travels 50+ miles — enables GSA stipend (non-taxable) split.';
+
+  calcSection1();
+}
+
+function toggleStipendSource() {
+  const source = document.querySelector('input[name="stipendSource"]:checked').value;
+  $('manualStipendWrap').classList.toggle('hidden', source !== 'manual');
+  $('autoStipendWrap').classList.toggle('hidden', source !== 'auto');
+  if (source === 'manual') recalcManualStipend();
+}
+
+function recalcManualStipend() {
+  const lodging = num('manLodging');
+  const meals = num('manMeals');
+  const daily = lodging + meals;
+  const weekly = daily * 7;
+  if (!manualStipendTouched) {
+    $('manualStipendAmount').value = weekly.toFixed(2);
+  }
+  updateStipendOutputs(lodging, meals, daily, Number($('manualStipendAmount').value) || weekly);
+}
+
+$('manLodging').addEventListener('input', recalcManualStipend);
+$('manMeals').addEventListener('input', recalcManualStipend);
+$('manualStipendAmount').addEventListener('input', function() {
+  manualStipendTouched = true;
+  updateStipendOutputs(num('manLodging'), num('manMeals'), num('manLodging') + num('manMeals'), num('manualStipendAmount'));
+});
+
+function updateStipendOutputs(lodging, meals, daily, weekly) {
+  currentStipendWeekly = weekly;
+  // Recalculate margin + split since stipend changed
+  calcSection1();
+}
+
+const PD_BASE = 'https://api.gsa.gov/travel/perdiem/v2/rates/';
+
+async function fetchPerDiem() {
+  const key = settings.gsaApiKey;
+  const city = $('pdCity').value.trim();
+  const state = $('pdState').value.trim().toUpperCase();
+  const zip = $('pdZip').value.trim();
+  const year = num('pdYear');
+  const month = num('pdMonth');
+
+  if (!key) { $('pdStatus').textContent = '⚠️ No GSA API key set. Add one in Admin Panel first.'; $('pdStatus').className = 'status error'; return; }
+  if (!state || state.length !== 2) { $('pdStatus').textContent = '⚠️ Enter a two-letter state abbreviation.'; $('pdStatus').className = 'status error'; return; }
+  if (!city && !zip) { $('pdStatus').textContent = '⚠️ Enter a city OR a ZIP code.'; $('pdStatus').className = 'status error'; return; }
+
+  $('pdStatus').textContent = '⏳ Fetching GSA Per Diem...';
+  $('pdStatus').className = 'status';
+
+  try {
+    let endpoint;
+    if (zip) {
+      endpoint = `zip/${encodeURIComponent(zip)}/year/${year}`;
+    } else {
+      const cleanCity = city.replace(/[.'’\-]/g, ' ').replace(/\s+/g, ' ').trim();
+      endpoint = `city/${encodeURIComponent(cleanCity)}/state/${state}/year/${year}`;
+    }
+    const url = PD_BASE + endpoint + '?api_key=' + encodeURIComponent(key);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status + ' — check API key and destination');
+    const data = await resp.json();
+    if (data.errors && data.errors.length) throw new Error(JSON.stringify(data.errors));
+
+    const rate = data.rates?.[0]?.rate?.[0];
+    if (!rate) throw new Error('No Per Diem rate found for this destination/year.');
+
+    const monthObj = rate.months?.month?.find(m => Number(m.number) === month);
+    if (!monthObj) throw new Error('No lodging value for the selected month.');
+
+    const lodging = Number(monthObj.value) || 0;
+    const meals = Number(rate.meals) || 0;
+    const daily = lodging + meals;
+    const weekly = daily * 7;
+
+    updateStipendOutputs(lodging, meals, daily, weekly);
+
+    const location = (rate.city || city || '—') + (rate.state ? ', ' + rate.state : '');
+    $('pdStatus').textContent = `✅ Per Diem loaded: $${daily.toFixed(2)}/day, $${weekly.toFixed(2)}/week (${location}, FY${year}).`;
+    $('pdStatus').className = 'status success';
+    // Trigger margin + split recalc with the fetched stipend
+    calcSection1();
+  } catch (e) {
+    $('pdStatus').textContent = '❌ Per Diem error: ' + e.message;
+    $('pdStatus').className = 'status error';
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadSettings();
+recalcManualStipend();
+calcSection1();
+</script>
+</body>
+</html>
