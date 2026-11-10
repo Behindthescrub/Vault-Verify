@@ -1,13 +1,14 @@
 // Recruiter tool — Prisma schema
-// Dev: SQLite (sandbox / local). Production: change provider to "postgresql"
-// for Supabase (see DEPLOY.md, one-line change).
+// Database: Supabase Postgres via the Supavisor session pooler
+// (aws-0-ap-southeast-2.pooler.supabase.com:5432, IPv4-friendly — works
+// both locally and on Vercel). DATABASE_URL comes from .env / host env.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

@@ -22,21 +22,27 @@ instead.)
 ## 2. Supabase (Postgres database)
 
 1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
-2. Grab the connection strings from **Project Settings → Database**:
-   - **Transaction pooler** (port `6543`) → this becomes `DATABASE_URL`
-   - **Session pooler / Direct** (port `5432`) → for migrations
-3. Copy them somewhere; you'll paste them into Vercel in step 3.
+2. In **Project Settings → Database**, use the **Connection pooler**
+   (IPv4-friendly) string — **session mode, port 5432** — as `DATABASE_URL`:
 
-**Switch Prisma from SQLite to Postgres** — one line in `prisma/schema.prisma`:
+   ```
+   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
+   ```
 
-```prisma
-datasource db {
-  provider = "postgresql"   // was "sqlite"
-  url      = env("DATABASE_URL")
-}
+   > Do NOT use the direct string (`db.<ref>.supabase.co:5432`) — it is
+   > IPv6-only and fails on IPv4-only hosts (Vercel functions, this sandbox).
+   > Percent-encode special characters in the password (`@` → `%40`).
+
+**Prisma is already on Postgres** (`provider = "postgresql"` in
+`prisma/schema.prisma`) — nothing to switch anymore.
+
+**This project is already migrated and seeded** (superadmin + 315 templates /
+32,837 skills live in Supabase). To redo it on a fresh project:
+
+```bash
+DATABASE_URL="postgresql://…pooler…5432/postgres?sslmode=require" npx prisma db push
+DATABASE_URL="postgresql://…pooler…5432/postgres?sslmode=require" bun scripts/seed.ts
 ```
-
-Commit that change and push.
 
 ## 3. Vercel (hosting + auto-deploy)
 
@@ -72,15 +78,14 @@ its own URL with a username + password login (enter `you@yourdomain.com`, or jus
 the password in **Keys & access → Superadmin credentials**. The recruiter app at
 `/` stays completely separate for your staffing accounts.
 
-> Local dev keeps working with SQLite: just keep a local `.env` with
-> `DATABASE_URL="file:./db/custom.db"` (git-ignored) and leave the schema
-> provider switched only when you deploy — or keep a second clone for deploys.
+> The dev sandbox runs on the same Supabase Postgres via the pooler string in
+> `.env` (git-ignored — copy `.env.example` and fill in your password). The old
+> SQLite file (`db/custom.db`) is kept only as an emergency fallback.
 >
-> If the dev database is ever re-provisioned empty, the app self-heals:
-> the superadmin console login (`admin` / `Superadmin@123` unless changed)
-> recreates the default admin, and saved platform settings — including the
-> Brevo/GSA keys — are restored automatically from `db/platform-backup.json`
-> (git-ignored, written every time you save settings). Only the skills
+> If the database is ever wiped empty, the app self-heals: the superadmin
+> console login (`admin` / `Superadmin@123` unless changed) recreates the
+> default admin, and saved platform settings — including the Brevo/GSA keys —
+> are restored automatically from `db/platform-backup.json`. Only the skills
 > library needs a re-run of `bun scripts/seed.ts`.
 
 ## 4. Brevo (transactional email)
