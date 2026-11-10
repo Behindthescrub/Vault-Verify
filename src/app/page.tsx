@@ -21,7 +21,6 @@ const DEFAULT_SETTINGS: UserSettings = {
   userId: '',
   companyName: null,
   companyLogoUrl: null,
-  gsaApiKey: null,
   defaultOnboardingPct: 22,
   minW2: 15,
   otEnabled: false,

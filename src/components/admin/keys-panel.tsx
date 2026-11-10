@@ -89,10 +89,10 @@ export function KeysPanel({ onCredentialsChanged }: { onCredentialsChanged: () =
       {/* GSA */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-1 flex items-center gap-2">
-          <KeyRound className="w-4 h-4 text-[#1F7A44]" /> GSA Per Diem API key (shared)
+          <KeyRound className="w-4 h-4 text-[#1F7A44]" /> GSA Per Diem API key (platform-wide)
         </h2>
         <p className="text-[12px] text-[#94a3b8] mb-3.5">
-          Used by the calculator&apos;s live GSA fetch. Get a free key at
+          Used by the calculator&apos;s live GSA fetch for every recruiter — only you can set it, recruiter accounts cannot override it. Get a free key at
           <a href="https://api.data.gov/sign-up/" target="_blank" rel="noreferrer" className="text-[#1F7A44] font-bold ml-1">api.data.gov</a>.
           {settings?.gsaApiKeySet && (
             <span className="block mt-1">Current key: <code className="bg-[#f1f5f9] rounded px-1.5 py-0.5">{settings.gsaApiKeyMasked}</code></span>

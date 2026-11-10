@@ -11,7 +11,6 @@ export type UserSettings = {
   userId: string
   companyName: string | null
   companyLogoUrl: string | null
-  gsaApiKey: string | null
   defaultOnboardingPct: number
   minW2: number
   otEnabled: boolean

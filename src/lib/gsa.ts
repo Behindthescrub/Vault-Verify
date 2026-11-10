@@ -1,7 +1,7 @@
 // GSA Per Diem API (https://api.gsa.gov/travel/perdiem/v2/rates/) —
 // proxied server-side so the API key never reaches the browser.
-// The key is managed in the superadmin panel; users may set a personal
-// override in their own settings.
+// The key is managed exclusively by the superadmin (PlatformSetting);
+// recruiter accounts have no personal key override.
 
 export type PerDiemResult = {
   lodging: number
@@ -28,7 +28,7 @@ export async function fetchPerDiem(opts: {
   month: number
 }): Promise<PerDiemResult> {
   const { apiKey, city, state, zip, year, month } = opts
-  if (!apiKey) throw new Error('No GSA API key configured. Add one in Superadmin → Platform, or in your own Settings.')
+  if (!apiKey) throw new Error('No GSA API key configured — the platform admin must add one in Superadmin → Keys & access.')
   if (!zip && (!state || state.length !== 2)) throw new Error('Enter a two-letter state abbreviation.')
   if (!city && !zip) throw new Error('Enter a city OR a ZIP code.')
 

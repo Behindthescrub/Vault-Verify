@@ -14,7 +14,6 @@ export async function GET() {
 const schema = z.object({
   companyName: z.string().trim().max(160).nullable().optional(),
   companyLogoUrl: z.string().max(512 * 1024).nullable().optional(), // data URL or https URL
-  gsaApiKey: z.string().trim().max(200).nullable().optional(),
   defaultOnboardingPct: z.number().min(0).max(100).optional(),
   minW2: z.number().min(0).max(1000).optional(),
   otEnabled: z.boolean().optional(),

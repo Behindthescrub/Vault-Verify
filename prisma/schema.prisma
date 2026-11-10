@@ -43,7 +43,6 @@ model UserSettings {
   user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName          String?
   companyLogoUrl       String? // data URL or https URL shown in calculator header
-  gsaApiKey            String? // optional personal override of the platform key
   defaultOnboardingPct Float   @default(22)
   minW2               Float   @default(15)
   otEnabled           Boolean @default(false)
@@ -54,10 +53,10 @@ model PlatformSetting {
   id               String  @id @default("main")
   // Brevo transactional email
   brevoApiKey      String?
-  brevoSenderEmail String  @default("no-reply@recruitertool.app")
-  brevoSenderName  String  @default("Recruiter tool")
+  brevoSenderEmail String  @default("myzipvault@gmail.com")
+  brevoSenderName  String  @default("VaultVerify")
   emailTestMode    Boolean @default(true) // true = log only, no real sends
-  // Shared GSA Per Diem API key (users may override in their settings)
+  // Shared GSA Per Diem API key — superadmin-only, recruiters cannot override
   gsaApiKey        String?
   updatedAt        DateTime @updatedAt
 }

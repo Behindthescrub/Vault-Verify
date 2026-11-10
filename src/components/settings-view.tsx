@@ -20,7 +20,6 @@ const LOGO_LIMIT = 256 * 1024 // 256 KB
 export function SettingsView({ user, settings, onSettingsChange }: Props) {
   const [companyName, setCompanyName] = useState(settings.companyName ?? '')
   const [logoUrl, setLogoUrl] = useState<string | null>(settings.companyLogoUrl)
-  const [gsaKey, setGsaKey] = useState(settings.gsaApiKey ?? '')
   const [onboarding, setOnboarding] = useState(settings.defaultOnboardingPct ?? 22)
   const [minW2, setMinW2] = useState(settings.minW2 ?? 15)
   const [otDefault, setOtDefault] = useState(settings.otEnabled ?? false)
@@ -49,7 +48,6 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
       const payload = {
         companyName: companyName.trim() || null,
         companyLogoUrl: logoUrl,
-        gsaApiKey: gsaKey.trim() || null,
         defaultOnboardingPct: onboarding,
         minW2,
         otEnabled: otDefault,
@@ -100,10 +98,6 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Company name</Label>
               <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your staffing company" className="h-11 mt-1.5" maxLength={160} />
-            </div>
-            <div>
-              <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">GSA API key (personal, optional)</Label>
-              <Input type="password" value={gsaKey} onChange={(e) => setGsaKey(e.target.value)} placeholder="Overrides the platform key" className="h-11 mt-1.5" autoComplete="off" />
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Default onboarding (%)</Label>

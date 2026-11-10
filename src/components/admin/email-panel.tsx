@@ -109,8 +109,9 @@ export function EmailPanel() {
           <Mail className="w-4 h-4 text-[#1F7A44]" /> Brevo transactional email
         </h2>
         <p className="text-[12px] text-[#94a3b8] mb-3.5">
-          Checklist invitations are sent through Brevo. Get your API v3 key at
-          <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noreferrer" className="text-[#1F7A44] font-bold ml-1">app.brevo.com → SMTP &amp; API keys</a>.
+          Checklist invitations are sent through Brevo. Generate an <strong>API v3 key</strong> (starts with <code>xkeysib-</code>) at
+          <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noreferrer" className="text-[#1F7A44] font-bold ml-1">app.brevo.com → SMTP &amp; API → API keys</a>.
+          SMTP keys (<code>xsmtpsib-…</code>) only work on the SMTP relay, not with this API — the REST endpoint is what the app uses (it also works on Vercel serverless).
           {settings?.brevoApiKeySet && (
             <span className="block mt-1">Current key: <code className="bg-[#f1f5f9] rounded px-1.5 py-0.5">{settings.brevoApiKeyMasked}</code></span>
           )}
@@ -125,8 +126,8 @@ export function EmailPanel() {
           <div>
             <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Sender email</Label>
             <Input type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)}
-              placeholder="no-reply@yourdomain.com" className="h-11 mt-1.5" />
-            <p className="text-[11px] text-[#94a3b8] mt-1.5">Must be a domain verified in Brevo.</p>
+              placeholder="myzipvault@gmail.com" className="h-11 mt-1.5" />
+            <p className="text-[11px] text-[#94a3b8] mt-1.5">Must be added &amp; verified as a sender in Brevo (Senders &amp; IP).</p>
           </div>
           <div>
             <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Sender name</Label>
