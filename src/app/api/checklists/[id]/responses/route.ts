@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { computeAvg, validateRatings, type SnapshotCategory, type Ratings } from '@/lib/skills'
 
 type Params = { params: Promise<{ id: string }> }
 
+const ratingValue = z.union([z.number().int().min(1).max(4), z.literal('na'), z.literal('yes'), z.literal('no'), z.string().trim().min(1).max(2000)])
+
 const schema = z.object({
-  ratings: z.record(z.string(), z.number().int().min(1).max(5)),
+  ratings: z.record(z.string(), ratingValue),
   candidateName: z.string().trim().max(120).optional(),
   candidateEmail: z.string().email().optional(),
 })
@@ -26,37 +29,38 @@ export async function POST(req: NextRequest, { params }: Params) {
     const c = await db.checklist.findUnique({ where: { id } })
     if (!c || c.userId !== user.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    // Validate the submitted ratings cover the checklist skills
-    const items: { category: string; skills: string[] }[] = JSON.parse(c.itemsJson)
-    const allSkills = items.flatMap((i) => i.skills)
-    const ratings = parsed.data.ratings
-    const missing = allSkills.filter((s) => !(s in ratings))
+    const items: SnapshotCategory[] = JSON.parse(c.itemsJson)
+    const ratings = parsed.data.ratings as Ratings
+    const { missing, invalid } = validateRatings(items, ratings)
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `Rate every skill — ${missing.length} missing (e.g. "${missing[0]}")` },
-        { status: 400 }
+        { status: 400 },
+      )
+    }
+    if (invalid.length > 0) {
+      return NextResponse.json(
+        { error: `Invalid rating for "${invalid[0]}" — use 1–4, or N/A where offered` },
+        { status: 400 },
       )
     }
 
-    const values = allSkills.map((s) => ratings[s])
-    const avg = values.reduce((a, b) => a + b, 0) / values.length
-
+    const avg = computeAvg(ratings)
     const response = await db.checklistResponse.upsert({
       where: { checklistId: c.id },
       create: {
         checklistId: c.id,
         ratingsJson: JSON.stringify(ratings),
-        avgRating: Math.round(avg * 100) / 100,
+        avgRating: avg,
       },
       update: {
         ratingsJson: JSON.stringify(ratings),
-        avgRating: Math.round(avg * 100) / 100,
+        avgRating: avg,
         completedAt: new Date(),
       },
     })
-
     await db.checklist.update({
-      where: { id },
+      where: { id: c.id },
       data: {
         status: 'submitted',
         submittedVia: 'manual',
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       },
     })
 
-    return NextResponse.json({ ok: true, avgRating: response.avgRating })
+    return NextResponse.json({ ok: true, avgRating: avg, responseId: response.id })
   } catch {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }

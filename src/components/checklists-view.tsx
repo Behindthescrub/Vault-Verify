@@ -5,14 +5,21 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { api } from '@/lib/client-api'
-import { TEMPLATES, getTemplate } from '@/lib/templates'
 import type { ChecklistSummary } from '@/lib/types'
-import { CheckSquare, ClipboardCheck, Copy, Eye, Link2, Loader2, Mail, Plus, Send, Trash2, UserPen, Users2 } from 'lucide-react'
+import type { SnapshotCategory, SnapshotSkill } from '@/lib/skills'
+import { CheckSquare, ChevronRight, ClipboardCheck, Copy, Eye, Link2, Loader2, Mail, Plus, Search, Send, Trash2, UserPen } from 'lucide-react'
 
-type TemplateSummary = { key: string; label: string; description: string; categories: number; skills: number }
-type WizardItems = { category: string; skills: { skill: string; kept: boolean }[] }[]
+type TemplateRow = {
+  id: string
+  profession: string
+  jobTitle: string
+  specialty: string
+  name: string
+  skillCount: number
+  categoryCount: number
+}
+type Grouped = Record<string, Record<string, TemplateRow[]>>
 
 type Props = {
   onOpenDetail: (id: string) => void
@@ -21,7 +28,8 @@ type Props = {
 
 export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
   const [items, setItems] = useState<ChecklistSummary[]>([])
-  const [templates, setTemplates] = useState<TemplateSummary[]>([])
+  const [templates, setTemplates] = useState<TemplateRow[]>([])
+  const [grouped, setGrouped] = useState<Grouped>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -39,73 +47,117 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
 
   useEffect(() => {
     refresh()
-    api<{ templates: TemplateSummary[] }>('/api/templates')
-      .then((d) => setTemplates(d.templates))
+    api<{ templates: TemplateRow[]; grouped: Grouped }>('/api/templates')
+      .then((d) => { setTemplates(d.templates); setGrouped(d.grouped) })
       .catch(() => {})
   }, [refresh])
 
-  // New checklist dialog state
+  // ─── New checklist wizard state ──────────────────────────────────
   const [newOpen, setNewOpen] = useState(false)
-  const [wizardStep, setWizardStep] = useState<'pick' | 'customize'>('pick')
+  const [step, setStep] = useState<'pick' | 'customize'>('pick')
   const [title, setTitle] = useState('')
-  const [templateKey, setTemplateKey] = useState<string>('')
   const [candidateName, setCandidateName] = useState('')
   const [candidateEmail, setCandidateEmail] = useState('')
-  const [wizardItems, setWizardItems] = useState<WizardItems>([])
-  const [customSkill, setCustomSkill] = useState<Record<string, string>>({})
+  const [selProfession, setSelProfession] = useState('')
+  const [selJobTitle, setSelJobTitle] = useState('')
+  const [selTemplate, setSelTemplate] = useState<TemplateRow | null>(null)
+  const [templateItems, setTemplateItems] = useState<SnapshotCategory[]>([])
+  const [pickerSearch, setPickerSearch] = useState('')
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
+  const [loadingSkills, setLoadingSkills] = useState(false)
 
-  // Invite dialog state
+  // ─── Invite dialog state ─────────────────────────────────────────
   const [inviteFor, setInviteFor] = useState<ChecklistSummary | null>(null)
   const [inviteTo, setInviteTo] = useState('')
   const [inviteMsg, setInviteMsg] = useState('')
   const [inviteBusy, setInviteBusy] = useState(false)
   const [inviteResult, setInviteResult] = useState<{ ok: boolean; text: string; link?: string } | null>(null)
-
   const [copied, setCopied] = useState<string | null>(null)
+
+  const professions = useMemo(() => Object.keys(grouped).sort(), [grouped])
+  const jobTitles = useMemo(
+    () => (selProfession && grouped[selProfession] ? Object.keys(grouped[selProfession]).sort() : []),
+    [grouped, selProfession],
+  )
+  const specialties = useMemo(
+    () => (selProfession && selJobTitle && grouped[selProfession]?.[selJobTitle] ? grouped[selProfession][selJobTitle] : []),
+    [grouped, selProfession, selJobTitle],
+  )
+
+  // Flat search across all templates
+  const searchResults = useMemo(() => {
+    const q = pickerSearch.trim().toLowerCase()
+    if (!q) return null
+    return templates.filter((t) =>
+      `${t.profession} ${t.jobTitle} ${t.specialty}`.toLowerCase().includes(q),
+    ).slice(0, 40)
+  }, [templates, pickerSearch])
 
   function openNew() {
     setNewOpen(true)
-    setWizardStep('pick')
+    setStep('pick')
     setTitle('')
-    setTemplateKey('')
     setCandidateName('')
     setCandidateEmail('')
-    setWizardItems([])
-    setCustomSkill({})
+    setSelProfession(professions[0] ?? '')
+    setSelJobTitle('')
+    setSelTemplate(null)
+    setTemplateItems([])
+    setPickerSearch('')
     setCreateError('')
   }
 
-  function pickTemplate(key: string) {
-    const t = getTemplate(key)
-    if (!t) return
-    setTemplateKey(key)
-    if (!title) setTitle(t.label.split('— ')[1] ?? t.label)
-    setWizardItems(t.items.map((c) => ({ category: c.category, skills: c.skills.map((s) => ({ skill: s, kept: true })) })))
-    setWizardStep('customize')
+  function chooseProfession(p: string) {
+    setSelProfession(p)
+    setSelJobTitle('')
+    setSelTemplate(null)
+    setPickerSearch('')
   }
 
-  function toggleSkill(cat: string, skill: string) {
-    setWizardItems((its) =>
+  function chooseJobTitle(j: string) {
+    setSelJobTitle(j)
+    setSelTemplate(null)
+  }
+
+  async function pickTemplate(t: TemplateRow) {
+    setLoadingSkills(true)
+    setSelTemplate(t)
+    try {
+      const d = await api<{ template: unknown; skills: { skillName: string; category: string; questionType: string; hasNaOption: boolean; sortOrder: number }[] }>(
+        `/api/templates?templateId=${t.id}`,
+      )
+      // Group by category in sort order
+      const byCat = new Map<string, SnapshotSkill[]>()
+      for (const s of d.skills) {
+        if (!byCat.has(s.category)) byCat.set(s.category, [])
+        byCat.get(s.category)!.push({ name: s.skillName, questionType: s.questionType, hasNaOption: s.hasNaOption })
+      }
+      const its: SnapshotCategory[] = [...byCat.entries()].map(([category, skills]) => ({ category, skills }))
+      setTemplateItems(its)
+      if (!title) setTitle(`${t.jobTitle} — ${t.specialty}${candidateName.trim() ? ` — ${candidateName.trim()}` : ''}`)
+      setStep('customize')
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : 'Failed to load template skills')
+    } finally {
+      setLoadingSkills(false)
+    }
+  }
+
+  function toggleSkill(cat: string, name: string) {
+    setTemplateItems((its) =>
       its.map((c) =>
         c.category === cat
-          ? { ...c, skills: c.skills.map((s) => (s.skill === skill ? { ...s, kept: !s.kept } : s)) }
+          ? { ...c, skills: c.skills.filter((s) => s.name !== name) }
           : c
-      )
+      ).filter((c) => c.skills.length > 0),
     )
   }
 
-  function addCustomSkill(cat: string) {
-    const v = (customSkill[cat] ?? '').trim()
-    if (!v) return
-    setWizardItems((its) => its.map((c) => (c.category === cat ? { ...c, skills: [...c.skills, { skill: v, kept: true }] } : c)))
-    setCustomSkill((m) => ({ ...m, [cat]: '' }))
-  }
-
   async function createChecklist() {
-    const finalItems = wizardItems
-      .map((c) => ({ category: c.category, skills: c.skills.filter((s) => s.kept).map((s) => s.skill) }))
+    if (!selTemplate) return
+    const finalItems = templateItems
+      .map((c) => ({ category: c.category, skills: c.skills.map((s) => ({ name: s.name, questionType: s.questionType, hasNaOption: s.hasNaOption })) }))
       .filter((c) => c.skills.length > 0)
     if (finalItems.length === 0) {
       setCreateError('Keep at least one skill')
@@ -117,8 +169,8 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
       await api('/api/checklists', {
         method: 'POST',
         body: JSON.stringify({
-          title: title.trim() || 'Skills Checklist',
-          templateKey,
+          title: title.trim() || `${selTemplate.jobTitle} — ${selTemplate.specialty}`,
+          templateId: selTemplate.id,
           candidateName: candidateName.trim() || undefined,
           candidateEmail: candidateEmail.trim() || undefined,
           items: finalItems,
@@ -164,7 +216,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
         ok: true,
         text:
           data.emailStatus === 'test-mode'
-            ? 'Logged in test mode (no real email sent — add a Brevo API key and turn off test mode in Superadmin → Platform). The link below still works — you can copy and send it yourself.'
+            ? 'Logged in test mode (no real email sent — add a Brevo API key and turn off test mode in Superadmin → Email). The link below still works — you can copy and send it yourself.'
             : 'Invitation sent.',
         link: data.link,
       })
@@ -191,6 +243,8 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
     sent: items.filter((i) => i.status === 'sent').length,
     submitted: items.filter((i) => i.status === 'submitted').length,
   }), [items])
+
+  const selCount = templateItems.reduce((n, c) => n + c.skills.length, 0)
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -221,7 +275,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
             <CheckSquare className="w-10 h-10 mx-auto text-[#c7d2fe] mb-3" />
             <div className="font-bold text-[15px] text-[#334155]">No checklists yet</div>
             <p className="text-[13px] text-[#94a3b8] mt-1 max-w-sm mx-auto">
-              Create your first checklist from a ready-made RN / LPN / CNA / PT / OT / RT template, then email it to a candidate.
+              Create your first checklist from {templates.length} ready-made profession templates, then email it to a candidate.
             </p>
             <Button onClick={openNew} className="mt-4 font-bold gap-2 h-10"
               style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
@@ -235,7 +289,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                 <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onOpenDetail(c.id)}>
                   <div className="font-bold text-[14px] text-[#0f172a] truncate">{c.title}</div>
                   <div className="text-[12px] text-[#94a3b8] mt-0.5 flex flex-wrap gap-x-2">
-                    <span className="uppercase tracking-wide">{c.templateKey}</span>
+                    <span className="font-semibold text-[#64748b]">{c.templateLabel}</span>
                     <span>· {c.skillCount} skills</span>
                     {c.candidateName && <span>· {c.candidateName}</span>}
                     {c.candidateEmail && <span className="hidden sm:inline">· {c.candidateEmail}</span>}
@@ -245,7 +299,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   {c.status === 'submitted' && c.avgRating != null && (
                     <span className="text-[12px] font-bold tabular-nums px-2 py-0.5 rounded-full border bg-[#dcfce7] border-[#86efac] text-[#15803d]">
-                      avg {c.avgRating.toFixed(1)}
+                      avg {c.avgRating.toFixed(1)}/4
                     </span>
                   )}
                   <StatusChip status={c.status} />
@@ -262,7 +316,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                   <Button variant="ghost" size="sm" className="h-9 gap-1.5" onClick={() => onOpenDetail(c.id)}>
                     <Eye className="w-3.5 h-3.5" /> View
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-9 text-[#dc2626] hover:bg-[#fef2f2] hover:text-[#b91c1c]"
+                  <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-[#dc2626] hover:bg-[#fef2f2] hover:text-[#b91c1c]"
                     onClick={() => deleteChecklist(c.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
@@ -274,33 +328,97 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
       </div>
 
       {/* ===== New checklist dialog ===== */}
-      <Dialog open={newOpen} onOpenChange={(o) => { setNewOpen(o); if (!o) setWizardStep('pick') }}>
+      <Dialog open={newOpen} onOpenChange={(o) => { setNewOpen(o); if (!o) setStep('pick') }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{wizardStep === 'pick' ? 'New skills checklist' : 'Customize skills'}</DialogTitle>
+            <DialogTitle>{step === 'pick' ? 'New skills checklist' : 'Customize skills'}</DialogTitle>
             <DialogDescription>
-              {wizardStep === 'pick'
-                ? 'Pick a template — you can trim or add skills on the next step.'
-                : 'Uncheck skills you don\u2019t need, or add your own. Everything left checked goes to the candidate.'}
+              {step === 'pick'
+                ? `Pick a template — ${templates.length} profession templates available (Profession → Job Title → Specialty).`
+                : 'Remove skills you don\u2019t need. Everything left goes to the candidate.'}
             </DialogDescription>
           </DialogHeader>
 
-          {wizardStep === 'pick' ? (
+          {step === 'pick' ? (
             <div className="space-y-4">
-              <div>
-                <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Checklist title (optional)</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. RN Med-Surg — John Doe" className="h-11 mt-1.5" maxLength={160} />
+              {/* Search */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Input value={pickerSearch} onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="Search all templates — e.g. “ICU”, “Physical Therapy”, “Endoscopy”…" className="h-11 pl-9" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {templates.map((t) => (
-                  <button key={t.key} type="button" onClick={() => pickTemplate(t.key)}
-                    className="text-left rounded-2xl border border-[#eaeef5] bg-white p-4 hover:border-[#c7d2fe] hover:bg-[#f8fafc] cursor-pointer transition-colors">
-                    <div className="font-bold text-[13.5px] text-[#0f172a]">{t.label}</div>
-                    <div className="text-[11.5px] text-[#94a3b8] mt-1 leading-relaxed">{t.description}</div>
-                    <div className="text-[11px] text-[#4f46e5] font-bold mt-2">{t.categories} categories · {t.skills} skills</div>
-                  </button>
-                ))}
-              </div>
+
+              {searchResults ? (
+                /* Search results */
+                <div className="space-y-2 max-h-[46vh] overflow-y-auto">
+                  {searchResults.length === 0 && (
+                    <div className="text-[13px] text-[#94a3b8] py-4 text-center">No templates match “{pickerSearch}”.</div>
+                  )}
+                  {searchResults.map((t) => (
+                    <button key={t.id} type="button" onClick={() => pickTemplate(t)}
+                      className="w-full text-left rounded-2xl border border-[#eaeef5] bg-white p-3.5 hover:border-[#c7d2fe] hover:bg-[#f8fafc] cursor-pointer transition-colors flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-[13.5px] text-[#0f172a] truncate">
+                          <span className="text-[#4f46e5]">{t.jobTitle}</span> · {t.specialty}
+                        </div>
+                        <div className="text-[11.5px] text-[#94a3b8] mt-0.5">{t.profession} · {t.categoryCount} categories · {t.skillCount} skills</div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#c3cbd8] shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* Cascade picker */
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Profession */}
+                  <div>
+                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">1 · Profession</div>
+                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
+                      {professions.map((p) => (
+                        <button key={p} type="button" onClick={() => chooseProfession(p)}
+                          className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
+                            selProfession === p ? 'bg-[#eef2ff] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
+                          }`}>
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Job title */}
+                  <div>
+                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">2 · Job title</div>
+                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
+                      {jobTitles.length === 0 && <div className="px-3.5 py-2.5 text-[12px] text-[#94a3b8]">Pick a profession first</div>}
+                      {jobTitles.map((j) => (
+                        <button key={j} type="button" onClick={() => chooseJobTitle(j)}
+                          className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
+                            selJobTitle === j ? 'bg-[#eef2ff] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
+                          }`}>
+                          {j}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Specialty */}
+                  <div>
+                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">3 · Specialty</div>
+                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
+                      {specialties.length === 0 && <div className="px-3.5 py-2.5 text-[12px] text-[#94a3b8]">Pick a job title first</div>}
+                      {specialties.map((t) => (
+                        <button key={t.id} type="button" onClick={() => pickTemplate(t)} disabled={loadingSkills}
+                          className="w-full text-left px-3.5 py-2.5 cursor-pointer transition-colors bg-white hover:bg-[#f8fafc] disabled:opacity-50">
+                          <div className="text-[13px] font-bold text-[#334155]">{t.specialty}</div>
+                          <div className="text-[11px] text-[#94a3b8] mt-0.5">{t.categoryCount} categories · {t.skillCount} skills</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loadingSkills && <div className="flex items-center gap-2 text-[13px] text-[#64748b]"><Loader2 className="w-4 h-4 animate-spin" /> Loading skills…</div>}
+              {createError && <div className="text-[13px] font-semibold text-[#dc2626]">{createError}</div>}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate name (optional)</Label>
@@ -314,44 +432,49 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-[12.5px] text-[#64748b]">
-                <Users2 className="w-3.5 h-3.5" />
-                {wizardItems.reduce((n, c) => n + c.skills.filter((s) => s.kept).length, 0)} skills selected ·{' '}
-                {wizardItems.filter((c) => c.skills.some((s) => s.kept)).length} categories
-                <button type="button" className="ml-auto text-[12.5px] font-bold text-[#4f46e5] cursor-pointer"
-                  onClick={() => setWizardItems((its) => its.map((c) => ({ ...c, skills: c.skills.map((s) => ({ ...s, kept: false })) })))}>
-                  Clear all
-                </button>
+              {selTemplate && (
+                <div className="flex items-center gap-2 text-[12.5px] text-[#64748b] flex-wrap">
+                  <span className="font-bold text-[#4f46e5]">{selTemplate.profession}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span className="font-bold text-[#334155]">{selTemplate.jobTitle}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span className="font-bold text-[#334155]">{selTemplate.specialty}</span>
+                  <span className="ml-auto">{selCount} skills selected</span>
+                </div>
+              )}
+              <div>
+                <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Checklist title</Label>
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. ICU RN — John Doe" className="h-11 mt-1.5" maxLength={160} />
               </div>
               <div className="max-h-[46vh] overflow-y-auto rounded-2xl border border-[#eef1f6] divide-y divide-[#eef1f6]">
-                {wizardItems.map((c) => (
+                {templateItems.map((c) => (
                   <div key={c.category} className="p-3.5">
-                    <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2">{c.category}</div>
+                    <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2 flex items-center justify-between">
+                      <span>{c.category}</span>
+                      <button type="button" className="text-[11px] font-bold text-[#dc2626] cursor-pointer"
+                        onClick={() => setTemplateItems((its) => its.filter((x) => x.category !== c.category))}>
+                        Remove category
+                      </button>
+                    </div>
                     <div className="flex flex-wrap gap-1.5">
                       {c.skills.map((s) => (
-                        <label key={s.skill} className={`text-[12px] font-medium px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors flex items-center gap-1.5 ${
-                          s.kept ? 'bg-[#eef2ff] border-[#c7d2fe] text-[#3730a3]' : 'bg-white border-[#e2e7f0] text-[#94a3b8]'
-                        }`}>
-                          <input type="checkbox" checked={s.kept} onChange={() => toggleSkill(c.category, s.skill)} className="accent-[#4f46e5]" />
-                          {s.skill}
-                        </label>
+                        <button key={s.name} type="button" onClick={() => toggleSkill(c.category, s.name)}
+                          title="Click to remove this skill"
+                          className="text-[12px] font-medium px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors bg-[#eef2ff] border-[#c7d2fe] text-[#3730a3] hover:bg-[#fef2f2] hover:border-[#fca5a5] hover:text-[#b91c1c]">
+                          {s.name}
+                        </button>
                       ))}
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Input value={customSkill[c.category] ?? ''} onChange={(e) => setCustomSkill((m) => ({ ...m, [c.category]: e.target.value }))}
-                        placeholder="Add a custom skill to this category" className="h-9 text-[13px]" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomSkill(c.category) } }} />
-                      <Button type="button" variant="outline" className="h-9 px-3 text-[12.5px]" onClick={() => addCustomSkill(c.category)}>Add</Button>
                     </div>
                   </div>
                 ))}
               </div>
               {createError && <div className="text-[13px] font-semibold text-[#dc2626]">{createError}</div>}
               <DialogFooter className="flex !justify-between sm:!justify-between gap-2">
-                <Button variant="ghost" onClick={() => setWizardStep('pick')}>Back</Button>
-                <Button onClick={createChecklist} disabled={creating} className="font-bold gap-2"
+                <Button variant="ghost" onClick={() => setStep('pick')}>Back</Button>
+                <Button onClick={createChecklist} disabled={creating || selCount === 0} className="font-bold gap-2"
                   style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
                   {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Create checklist
+                  Create checklist ({selCount} skills)
                 </Button>
               </DialogFooter>
             </div>

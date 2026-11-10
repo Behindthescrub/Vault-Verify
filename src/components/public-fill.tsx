@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/client-api'
-import { RatingPills } from '@/components/rating'
-import { SCALE_LEGEND } from '@/lib/templates'
-import { CheckCircle2, ClipboardCheck, Loader2, PartyPopper } from 'lucide-react'
+import { RatingPills, ScaleLegend } from '@/components/rating'
+import type { RatingValue, SnapshotCategory } from '@/lib/skills'
+import { CheckCircle2, ClipboardCheck, Loader2, PartyPopper, PenLine } from 'lucide-react'
 
 type PublicData = {
   checklist: {
@@ -15,44 +15,51 @@ type PublicData = {
     templateLabel: string
     candidateName: string | null
     alreadySubmitted: boolean
-    items: { category: string; skills: string[] }[]
+    items: SnapshotCategory[]
   }
 }
 
 // Candidate-facing checklist page — opened via /?c=<token>, no account needed.
+// 1–4 proficiency scale (MyZipVault) + N/A where offered + typed signature on submit.
 export function PublicFill({ token }: { token: string }) {
   const [data, setData] = useState<PublicData['checklist'] | null>(null)
   const [error, setError] = useState('')
-  const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [ratings, setRatings] = useState<Record<string, RatingValue>>({})
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [signedName, setSignedName] = useState('')
   const [busy, setBusy] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [done, setDone] = useState<{ avg: number } | null>(null)
+  const [done, setDone] = useState<{ avg: number | null } | null>(null)
 
   useEffect(() => {
     api<PublicData>(`/api/public/checklist/${token}`)
       .then((d) => {
         setData(d.checklist)
         setName(d.checklist.candidateName ?? '')
+        setSignedName(d.checklist.candidateName ?? '')
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
   }, [token])
 
-  const allSkills = useMemo(() => (data ? data.items.flatMap((c) => c.skills) : []), [data])
-  const ratedCount = allSkills.filter((s) => ratings[s] != null).length
-  const progress = allSkills.length > 0 ? Math.round((ratedCount / allSkills.length) * 100) : 0
+  const allSkills = useMemo(
+    () => (data ? data.items.flatMap((c) => c.skills.map((s) => s.name)) : []),
+    [data],
+  )
+  const answeredCount = allSkills.filter((s) => ratings[s] !== undefined && ratings[s] !== '').length
+  const progress = allSkills.length > 0 ? Math.round((answeredCount / allSkills.length) * 100) : 0
 
   async function submit() {
     setBusy(true)
     setSubmitError('')
     try {
-      const res = await api<{ ok: boolean; avgRating: number }>(`/api/public/checklist/${token}/submit`, {
+      const res = await api<{ ok: boolean; avgRating: number | null }>(`/api/public/checklist/${token}/submit`, {
         method: 'POST',
         body: JSON.stringify({
           ratings,
           candidateName: name.trim(),
           candidateEmail: email.trim() || undefined,
+          signedName: signedName.trim(),
         }),
       })
       setDone({ avg: res.avgRating })
@@ -114,6 +121,11 @@ export function PublicFill({ token }: { token: string }) {
     )
   }
 
+  const canSubmit =
+    answeredCount === allSkills.length &&
+    name.trim().length > 0 &&
+    signedName.trim().length >= 2
+
   return (
     <Shell>
       {/* Header */}
@@ -132,7 +144,7 @@ export function PublicFill({ token }: { token: string }) {
       {/* Progress + identity */}
       <div className="px-6 sm:px-10 py-4 border-b border-[#eef1f6] bg-[#f8fafc]">
         <div className="flex items-center justify-between text-[12px] font-bold text-[#64748b] mb-1.5">
-          <span>{ratedCount} of {allSkills.length} rated</span>
+          <span>{answeredCount} of {allSkills.length} answered</span>
           <span className="tabular-nums">{progress}%</span>
         </div>
         <div className="h-2 rounded-full bg-[#e2e7f0] overflow-hidden">
@@ -152,15 +164,8 @@ export function PublicFill({ token }: { token: string }) {
 
       {/* Legend */}
       <div className="px-6 sm:px-10 py-4 border-b border-[#eef1f6]">
-        <div className="text-[10.5px] font-bold uppercase tracking-[0.6px] text-[#334155] mb-2">Rating scale — be honest, it&apos;s your safety on the line</div>
-        <div className="grid gap-1.5">
-          {SCALE_LEGEND.map((l) => (
-            <div key={l.value} className="flex items-baseline gap-2.5 text-[12px] text-[#64748b]">
-              <span className="w-5 h-5 rounded-md bg-[#eef2ff] border border-[#c7d2fe] text-[#4338ca] text-[11px] font-extrabold inline-flex items-center justify-center shrink-0 tabular-nums">{l.value}</span>
-              <span className="leading-relaxed">{l.label}</span>
-            </div>
-          ))}
-        </div>
+        <div className="text-[10.5px] font-bold uppercase tracking-[0.6px] text-[#334155] mb-2">Proficiency scale — be honest, it&apos;s your safety on the line</div>
+        <ScaleLegend />
       </div>
 
       {/* Skills */}
@@ -170,9 +175,14 @@ export function PublicFill({ token }: { token: string }) {
             <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2.5">{c.category}</div>
             <div className="grid gap-1.5">
               {c.skills.map((s) => (
-                <div key={s} className="flex items-center justify-between gap-3 flex-wrap py-2 border-b border-[#f1f5f9] last:border-b-0">
-                  <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s}</span>
-                  <RatingPills value={ratings[s] ?? null} onChange={(v) => setRatings((r) => ({ ...r, [s]: v }))} />
+                <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap py-2 border-b border-[#f1f5f9] last:border-b-0">
+                  <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s.name}</span>
+                  <RatingPills
+                    value={ratings[s.name] ?? null}
+                    onChange={(v) => setRatings((r) => ({ ...r, [s.name]: v }))}
+                    hasNa={s.hasNaOption}
+                    questionType={s.questionType}
+                  />
                 </div>
               ))}
             </div>
@@ -180,16 +190,34 @@ export function PublicFill({ token }: { token: string }) {
         ))}
       </div>
 
-      {/* Submit */}
-      <div className="px-6 sm:px-10 py-4 border-t border-[#eef1f6] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-3">
-        <div className="text-[12px] text-[#94a3b8]">You can&apos;t change answers after submitting.</div>
-        <div className="flex items-center gap-2.5">
-          {submitError && <span className="text-[12.5px] font-semibold text-[#dc2626] max-w-[240px] text-right">{submitError}</span>}
-          <Button onClick={submit} disabled={busy || ratedCount < allSkills.length || !name.trim()} className="h-11 px-6 font-bold"
-            style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            Submit checklist
-          </Button>
+      {/* Signature + submit */}
+      <div className="px-6 sm:px-10 py-5 border-t border-[#eef1f6] bg-[#f8fafc] space-y-4">
+        <div className="rounded-2xl border border-dashed border-[#c7d2fe] bg-[#f8faff] px-4 py-4">
+          <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155] flex items-center gap-1.5">
+            <PenLine className="w-3.5 h-3.5 text-[#4f46e5]" /> Digital signature — type your full legal name
+          </Label>
+          <Input
+            value={signedName}
+            onChange={(e) => setSignedName(e.target.value)}
+            placeholder="e.g. Jane A. Doe"
+            className="h-12 mt-2 text-[15px] italic"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            maxLength={120}
+          />
+          <p className="text-[11.5px] text-[#94a3b8] mt-1.5 leading-relaxed">
+            By typing your name and submitting, you certify the ratings above are your own honest self-assessment.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-[12px] text-[#94a3b8]">You can&apos;t change answers after submitting.</div>
+          <div className="flex items-center gap-2.5">
+            {submitError && <span className="text-[12.5px] font-semibold text-[#dc2626] max-w-[240px] text-right">{submitError}</span>}
+            <Button onClick={submit} disabled={busy || !canSubmit} className="h-11 px-6 font-bold"
+              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Submit checklist
+            </Button>
+          </div>
         </div>
       </div>
     </Shell>

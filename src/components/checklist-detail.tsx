@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/client-api'
 import type { ChecklistDetail } from '@/lib/types'
-import { RatingBadge, ratingColor } from '@/components/rating'
-import { ArrowLeft, ClipboardCheck, Loader2, Link2, Copy, Mail, UserPen, Clock4 } from 'lucide-react'
+import { RatingBadge, ratingColor, ScaleLegend } from '@/components/rating'
+import type { RatingValue } from '@/lib/skills'
+import { ArrowLeft, ClipboardCheck, Loader2, Link2, Copy, Mail, UserPen, Clock4, PenLine } from 'lucide-react'
 
 type Props = {
   id: string
@@ -23,6 +24,19 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
       .then((d) => setData(d.checklist))
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
   }, [id])
+
+  // Per-category averages over numeric ratings only (N/A, yes/no, text excluded)
+  const catStats = useMemo(() => {
+    if (!data) return []
+    return data.items.map((c) => {
+      const rated = c.skills.filter((s) => data.ratings && s.name in data.ratings)
+      const nums = rated
+        .map((s) => data.ratings![s.name])
+        .filter((v): v is number => typeof v === 'number')
+      const avg = nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null
+      return { category: c.category, total: c.skills.length, rated: rated.length, avg, naCount: rated.filter((s) => data.ratings![s.name] === 'na').length }
+    })
+  }, [data])
 
   if (error) {
     return (
@@ -46,12 +60,7 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
     }).catch(() => {})
   }
 
-  // Per-category averages
-  const catStats = data.items.map((c) => {
-    const rated = c.skills.filter((s) => data.ratings && s in data.ratings)
-    const avg = rated.length > 0 ? rated.reduce((n, s) => n + (data.ratings![s] ?? 0), 0) / rated.length : null
-    return { category: c.category, total: c.skills.length, rated: rated.length, avg }
-  })
+  const ratings = (data.ratings ?? {}) as Record<string, RatingValue>
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -75,8 +84,10 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
           {data.ratings && (
             <div className="text-center bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5">
               <div className="text-[10px] font-bold uppercase tracking-[0.7px] text-[#a8b8d8]">Average</div>
-              <div className="text-[24px] font-extrabold tabular-nums leading-none mt-1">{data.avgRating?.toFixed(1)}</div>
-              <div className="text-[10.5px] text-[#a8b8d8] mt-0.5">of 5</div>
+              <div className="text-[24px] font-extrabold tabular-nums leading-none mt-1">
+                {data.avgRating != null ? data.avgRating.toFixed(1) : '—'}
+              </div>
+              <div className="text-[10.5px] text-[#a8b8d8] mt-0.5">of 4</div>
             </div>
           )}
         </div>
@@ -87,7 +98,7 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
             <span className={`font-bold uppercase tracking-wide text-[11px] px-2 py-0.5 rounded-full border ${
               data.status === 'submitted' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
                 : data.status === 'sent' ? 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]'
-                : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'
+                  : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'
             }`}>{data.status === 'submitted' ? 'Completed' : data.status === 'sent' ? 'Awaiting candidate' : 'Draft'}</span>
             {data.submittedVia && <span>via {data.submittedVia === 'link' ? 'candidate link' : 'manual entry'}</span>}
           </span>
@@ -96,6 +107,11 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
           )}
           {data.inviteSentAt && (
             <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> invited {new Date(data.inviteSentAt).toLocaleDateString()}</span>
+          )}
+          {data.signedName && (
+            <span className="flex items-center gap-1.5" title="Candidate's typed digital signature">
+              <PenLine className="w-3.5 h-3.5" /> signed by <em className="font-semibold text-[#334155]">{data.signedName}</em>
+            </span>
           )}
         </div>
 
@@ -127,6 +143,9 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
           </div>
         ) : (
           <div className="px-6 sm:px-8 py-6 space-y-5">
+            {/* Legend */}
+            <ScaleLegend compact />
+
             {/* Category averages */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {catStats.map((c) => (
@@ -134,9 +153,11 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
                   <div className="text-[10px] font-bold uppercase tracking-[0.7px] text-[#64748b] leading-snug">{c.category}</div>
                   <div className={`text-[19px] font-extrabold tabular-nums mt-1 ${c.avg != null ? ratingColor(c.avg) : 'text-[#94a3b8]'}`}>
                     {c.avg != null ? c.avg.toFixed(1) : '—'}
-                    <span className="text-[11px] font-semibold text-[#94a3b8] ml-1">/ 5</span>
+                    <span className="text-[11px] font-semibold text-[#94a3b8] ml-1">/ 4</span>
                   </div>
-                  <div className="text-[10.5px] text-[#94a3b8] mt-0.5">{c.rated} of {c.total} skills</div>
+                  <div className="text-[10.5px] text-[#94a3b8] mt-0.5">
+                    {c.rated} of {c.total} skills{c.naCount > 0 ? ` · ${c.naCount} N/A` : ''}
+                  </div>
                 </div>
               ))}
             </div>
@@ -148,9 +169,9 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
                   <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-3">{c.category}</div>
                   <div className="grid gap-2">
                     {c.skills.map((s) => (
-                      <div key={s} className="flex items-center justify-between gap-3 flex-wrap">
-                        <span className="text-[13.5px] text-[#0f172a] font-medium">{s}</span>
-                        <RatingBadge value={data.ratings?.[s] ?? null} />
+                      <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className="text-[13.5px] text-[#0f172a] font-medium">{s.name}</span>
+                        <RatingBadge value={ratings[s.name] ?? null} questionType={s.questionType} />
                       </div>
                     ))}
                   </div>

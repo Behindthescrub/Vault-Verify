@@ -20,7 +20,7 @@ export type UserSettings = {
 export type ChecklistSummary = {
   id: string
   title: string
-  templateKey: string
+  templateLabel: string
   candidateName: string | null
   candidateEmail: string | null
   status: 'draft' | 'sent' | 'submitted'
@@ -35,16 +35,16 @@ export type ChecklistSummary = {
 export type ChecklistDetail = {
   id: string
   title: string
-  templateKey: string
   templateLabel: string
   candidateName: string | null
   candidateEmail: string | null
   status: 'draft' | 'sent' | 'submitted'
   submittedVia: string | null
   token: string
-  items: { category: string; skills: string[] }[]
-  ratings: Record<string, number> | null
+  items: { category: string; skills: { name: string; questionType: string; hasNaOption: boolean }[] }[]
+  ratings: Record<string, number | 'na' | 'yes' | 'no' | string> | null
   avgRating: number | null
+  signedName: string | null
   completedAt: string | null
   inviteSentAt: string | null
   createdAt: string
@@ -95,7 +95,7 @@ export type AdminRecentSubmission = {
   id: string
   title: string
   candidateName: string | null
-  templateKey: string
+  templateLabel: string
   avgRating: number | null
   completedAt: string
   ownerEmail: string
@@ -104,7 +104,7 @@ export type AdminRecentSubmission = {
 export type AdminChecklistRow = {
   id: string
   title: string
-  templateKey: string
+  templateLabel: string
   candidateName: string | null
   candidateEmail: string | null
   status: 'draft' | 'sent' | 'submitted'

@@ -104,14 +104,18 @@ shared one for their account only.
 
 ## Daily flow (what the app does)
 
-1. **Recruiter** signs up → creates a checklist from a template (RN/LPN/CNA/PT/OT/RT),
-   customizes skills → **Invite** sends the link by email (or **Copy link** /
-   **Manual** entry).
-2. **Candidate** opens the link on any device, rates every skill 1–5, submits —
-   no account needed.
-3. **Recruiter** sees per-category averages, overall score, and skill-by-skill
-   ratings in the checklist detail view.
-4. **Calculator**: enter bill/pay rates → margin, overtime blend, traveler
+1. **Recruiter** signs up → creates a checklist from the skills library
+   (Profession → Job Title → Specialty — 315 templates), trims the skills →
+   **Invite** sends the link by email (or **Copy link** / **Manual** entry).
+2. **Candidate** opens the link on any device, rates every skill on the 1–4
+   proficiency scale (No Experience / Limited / Experienced / Proficient),
+   optionally N/A, signs their name, submits — no account needed.
+3. **Recruiter** sees per-category averages (N/A excluded), overall score out
+   of 4, the digital signature, and skill-by-skill ratings in the detail view.
+4. **Superadmin** maintains the skills library itself: Excel import
+   (MyZipVault `Skills Data` format), add/edit/delete skills, rename/delete
+   professions & job titles — in **Superadmin → Skills data**.
+5. **Calculator**: enter bill/pay rates → margin, overtime blend, traveler
    stipend split with min-W2 floor → **Save calculation** → reload any past run.
 
 ## Maintenance
@@ -120,3 +124,5 @@ shared one for their account only.
 - `npx prisma studio` — inspect the database
 - Superadmin → Email → Send log — audit every email attempt
 - Superadmin → Checklist data — every checklist & response, exportable as CSV
+- Superadmin → Skills data — import/export the skills library (MyZipVault
+  `Skills Data` xlsx format)

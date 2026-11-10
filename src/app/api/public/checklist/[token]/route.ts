@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getTemplate } from '@/lib/templates'
+import { SCALE_LEGEND, type SnapshotCategory } from '@/lib/skills'
 
 type Params = { params: Promise<{ token: string }> }
 
@@ -12,14 +12,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
     include: { response: true },
   })
   if (!c) return NextResponse.json({ error: 'This checklist link is invalid or has been removed.' }, { status: 404 })
-  const template = getTemplate(c.templateKey)
   return NextResponse.json({
     checklist: {
       title: c.title,
-      templateLabel: template?.label ?? 'Skills Checklist',
+      templateLabel: c.templateLabel,
       candidateName: c.candidateName,
       alreadySubmitted: !!c.response,
-      items: JSON.parse(c.itemsJson),
+      items: JSON.parse(c.itemsJson) as SnapshotCategory[],
+      scale: SCALE_LEGEND,
     },
   })
 }

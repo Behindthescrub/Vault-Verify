@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/client-api'
 import type { ChecklistDetail } from '@/lib/types'
-import { RatingPills } from '@/components/rating'
-import { SCALE_LEGEND } from '@/lib/templates'
+import { RatingPills, ScaleLegend } from '@/components/rating'
+import type { RatingValue } from '@/lib/skills'
 import { ArrowLeft, Check, Loader2, UserPen } from 'lucide-react'
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
 // self-reported ratings (from a phone call, text, paper copy, etc.).
 export function ManualEntry({ id, onBack, onSaved }: Props) {
   const [data, setData] = useState<ChecklistDetail | null>(null)
-  const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [ratings, setRatings] = useState<Record<string, RatingValue>>({})
   const [candidateName, setCandidateName] = useState('')
   const [candidateEmail, setCandidateEmail] = useState('')
   const [busy, setBusy] = useState(false)
@@ -30,7 +30,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
     api<{ checklist: ChecklistDetail }>(`/api/checklists/${id}`)
       .then((d) => {
         setData(d.checklist)
-        setRatings(d.checklist.ratings ?? {})
+        setRatings((d.checklist.ratings as Record<string, RatingValue>) ?? {})
         setCandidateName(d.checklist.candidateName ?? '')
         setCandidateEmail(d.checklist.candidateEmail ?? '')
       })
@@ -38,11 +38,11 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
   }, [id])
 
   const allSkills = useMemo(
-    () => (data ? data.items.flatMap((c) => c.skills) : []),
-    [data]
+    () => (data ? data.items.flatMap((c) => c.skills.map((s) => s.name)) : []),
+    [data],
   )
-  const ratedCount = allSkills.filter((s) => ratings[s] != null).length
-  const progress = allSkills.length > 0 ? Math.round((ratedCount / allSkills.length) * 100) : 0
+  const answeredCount = allSkills.filter((s) => ratings[s] !== undefined && ratings[s] !== '').length
+  const progress = allSkills.length > 0 ? Math.round((answeredCount / allSkills.length) * 100) : 0
 
   async function save() {
     setBusy(true)
@@ -93,7 +93,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
         {/* Progress */}
         <div className="px-6 sm:px-8 py-4 border-b border-[#eef1f6] bg-[#f8fafc]">
           <div className="flex items-center justify-between text-[12px] font-bold text-[#64748b] mb-1.5">
-            <span>{ratedCount} of {allSkills.length} skills rated</span>
+            <span>{answeredCount} of {allSkills.length} skills answered</span>
             <span className="tabular-nums">{progress}%</span>
           </div>
           <div className="h-2 rounded-full bg-[#e2e7f0] overflow-hidden">
@@ -112,12 +112,8 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
         </div>
 
         {/* Legend */}
-        <div className="px-6 sm:px-8 py-4 border-b border-[#eef1f6] flex flex-wrap gap-2">
-          {SCALE_LEGEND.map((l) => (
-            <span key={l.value} className="text-[11px] text-[#64748b] bg-[#f8fafc] border border-[#eef1f6] rounded-full px-2.5 py-1">
-              <b className="text-[#334155]">{l.value}</b> · {l.label.split(' — ')[0]}
-            </span>
-          ))}
+        <div className="px-6 sm:px-8 py-4 border-b border-[#eef1f6]">
+          <ScaleLegend compact />
         </div>
 
         {/* Skills */}
@@ -127,9 +123,15 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
               <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2.5">{c.category}</div>
               <div className="grid gap-1.5">
                 {c.skills.map((s) => (
-                  <div key={s} className="flex items-center justify-between gap-3 flex-wrap py-2 border-b border-[#f1f5f9] last:border-b-0">
-                    <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s}</span>
-                    <RatingPills value={ratings[s] ?? null} onChange={(v) => setRatings((r) => ({ ...r, [s]: v }))} size="sm" />
+                  <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap py-2 border-b border-[#f1f5f9] last:border-b-0">
+                    <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s.name}</span>
+                    <RatingPills
+                      value={ratings[s.name] ?? null}
+                      onChange={(v) => setRatings((r) => ({ ...r, [s.name]: v }))}
+                      hasNa={s.hasNaOption}
+                      questionType={s.questionType}
+                      size="sm"
+                    />
                   </div>
                 ))}
               </div>
@@ -139,10 +141,10 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
 
         {/* Footer */}
         <div className="px-6 sm:px-8 py-4 border-t border-[#eef1f6] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-3 sticky bottom-0">
-          <div className="text-[12px] text-[#94a3b8]">Unrated skills are rejected on save — rate them all.</div>
+          <div className="text-[12px] text-[#94a3b8]">Unanswered skills are rejected on save — answer them all (N/A counts).</div>
           <div className="flex items-center gap-2">
             {error && <span className="text-[12.5px] font-semibold text-[#dc2626]">{error}</span>}
-            <Button onClick={save} disabled={busy || ratedCount < allSkills.length} className="font-bold gap-2"
+            <Button onClick={save} disabled={busy || answeredCount < allSkills.length} className="font-bold gap-2"
               style={{ background: 'linear-gradient(180deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Save ratings

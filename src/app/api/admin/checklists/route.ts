@@ -11,11 +11,9 @@ export async function GET(req: NextRequest) {
 
   const sp = req.nextUrl.searchParams
   const status = sp.get('status') // all | draft | sent | submitted
-  const template = sp.get('template') // all | rn | lpn | cna | pt | ot | rrt
 
-  const where: { status?: string; templateKey?: string } = {}
+  const where: { status?: string } = {}
   if (status && status !== 'all') where.status = status
-  if (template && template !== 'all') where.templateKey = template
 
   const rows = await db.checklist.findMany({
     where,
@@ -29,11 +27,11 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     checklists: rows.map((c) => {
-      const items = JSON.parse(c.itemsJson) as { category: string; skills: string[] }[]
+      const items = JSON.parse(c.itemsJson) as { category: string; skills: unknown[] }[]
       return {
         id: c.id,
         title: c.title,
-        templateKey: c.templateKey,
+        templateLabel: c.templateLabel,
         candidateName: c.candidateName,
         candidateEmail: c.candidateEmail,
         status: c.status,

@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
     'Candidate email',
     'Status',
     'Submitted via',
-    'Average rating',
+    'Average rating (of 4)',
     'Skills',
     'Owner (recruiter)',
     'Created',
@@ -37,11 +37,11 @@ export async function GET(_req: NextRequest) {
   ]
   const lines = [header.join(',')]
   for (const c of rows) {
-    const items = JSON.parse(c.itemsJson) as { category: string; skills: string[] }[]
+    const items = JSON.parse(c.itemsJson) as { category: string; skills: unknown[] }[]
     lines.push(
       [
         c.title,
-        c.templateKey.toUpperCase(),
+        c.templateLabel,
         c.candidateName,
         c.candidateEmail,
         c.status,

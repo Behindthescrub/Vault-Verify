@@ -102,7 +102,7 @@ export function OverviewPanel({ version }: Props) {
                       {s.candidateName || s.title}
                     </div>
                     <div className="text-[11.5px] text-[#94a3b8] truncate">
-                      {s.templateKey.toUpperCase()} · by {s.ownerEmail} · {new Date(s.completedAt).toLocaleDateString()}
+                      {s.templateLabel} · by {s.ownerEmail} · {new Date(s.completedAt).toLocaleDateString()}
                     </div>
                   </div>
                   {s.avgRating != null && (

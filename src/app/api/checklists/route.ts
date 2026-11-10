@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { getTemplate } from '@/lib/templates'
+import { buildTemplateSnapshot, templateLabel, type SnapshotCategory } from '@/lib/skills'
 
 // GET /api/checklists — list current user's checklists with response summary
 export async function GET() {
@@ -16,7 +16,7 @@ export async function GET() {
   const data = rows.map((c) => ({
     id: c.id,
     title: c.title,
-    templateKey: c.templateKey,
+    templateLabel: c.templateLabel,
     candidateName: c.candidateName,
     candidateEmail: c.candidateEmail,
     status: c.status,
@@ -26,23 +26,31 @@ export async function GET() {
     inviteSentAt: c.inviteSentAt,
     createdAt: c.createdAt,
     skillCount: JSON.parse(c.itemsJson).reduce(
-      (n: number, i: { skills: string[] }) => n + i.skills.length, 0
+      (n: number, i: { skills: unknown[] }) => n + i.skills.length, 0
     ),
   }))
   return NextResponse.json({ checklists: data })
 }
 
-// POST /api/checklists — create from a template (items customizable)
+// POST /api/checklists — create from a template (skills customizable)
 const createSchema = z.object({
   title: z.string().trim().min(1).max(160),
-  templateKey: z.string().min(1).max(40),
+  templateId: z.string().min(1).max(40),
   candidateName: z.string().trim().max(120).optional(),
   candidateEmail: z.string().email().optional(),
   items: z
     .array(
       z.object({
         category: z.string().trim().min(1).max(120),
-        skills: z.array(z.string().trim().min(1).max(240)).min(1),
+        skills: z
+          .array(
+            z.object({
+              name: z.string().trim().min(1).max(240),
+              questionType: z.enum(['rating_1_4', 'yes_no', 'text']).default('rating_1_4'),
+              hasNaOption: z.boolean().default(false),
+            })
+          )
+          .min(1),
       })
     )
     .min(1)
@@ -58,25 +66,23 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
     }
-    const { title, templateKey, candidateName, candidateEmail, items } = parsed.data
+    const { title, templateId, candidateName, candidateEmail, items } = parsed.data
 
-    let itemsJson: string
-    if (items) {
-      itemsJson = JSON.stringify(items)
-    } else {
-      const template = getTemplate(templateKey)
-      if (!template) return NextResponse.json({ error: 'Unknown template' }, { status: 400 })
-      itemsJson = JSON.stringify(template.items)
-    }
+    const snapshot = await buildTemplateSnapshot(templateId)
+    if (!snapshot) return NextResponse.json({ error: 'Unknown template' }, { status: 400 })
+
+    const itemsJson: SnapshotCategory[] =
+      items ?? snapshot.items
 
     const checklist = await db.checklist.create({
       data: {
         userId: user.id,
         title,
-        templateKey,
+        templateId: snapshot.template.id,
+        templateLabel: templateLabel(snapshot.template.profession, snapshot.template.jobTitle, snapshot.template.specialty),
         candidateName: candidateName || null,
         candidateEmail: candidateEmail || null,
-        itemsJson,
+        itemsJson: JSON.stringify(itemsJson),
       },
     })
     return NextResponse.json({ checklist: { id: checklist.id } })

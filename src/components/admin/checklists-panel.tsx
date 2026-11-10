@@ -9,11 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { api } from '@/lib/client-api'
 import type { AdminChecklistRow, AdminChecklistDetail } from '@/lib/types'
 import { RatingBadge, ratingColor } from '@/components/rating'
+import type { RatingValue } from '@/lib/skills'
 import { ClipboardList, Download, Loader2, Search, Users2 } from 'lucide-react'
-
-const TEMPLATE_LABELS: Record<string, string> = {
-  rn: 'RN', lpn: 'LPN', cna: 'CNA', pt: 'PT', ot: 'OT', rrt: 'RRT', custom: 'Custom',
-}
 
 const STATUS_TABS: { key: string; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -31,7 +28,6 @@ export function ChecklistsPanel({ version }: Props) {
 
   // filters
   const [status, setStatus] = useState('all')
-  const [template, setTemplate] = useState('all')
   const [q, setQ] = useState('')
 
   // detail dialog
@@ -44,7 +40,6 @@ export function ChecklistsPanel({ version }: Props) {
     try {
       const sp = new URLSearchParams()
       if (status !== 'all') sp.set('status', status)
-      if (template !== 'all') sp.set('template', template)
       const d = await api<{ checklists: AdminChecklistRow[] }>(`/api/admin/checklists?${sp.toString()}`)
       setRows(d.checklists)
       setError('')
@@ -53,7 +48,7 @@ export function ChecklistsPanel({ version }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [status, template])
+  }, [status])
 
   useEffect(() => { load() }, [load, version])
 
@@ -71,20 +66,21 @@ export function ChecklistsPanel({ version }: Props) {
     const needle = q.trim().toLowerCase()
     if (!needle) return rows
     return rows.filter((r) =>
-      [r.title, r.candidateName, r.candidateEmail, r.ownerEmail]
+      [r.title, r.candidateName, r.candidateEmail, r.ownerEmail, r.templateLabel]
         .some((v) => v && v.toLowerCase().includes(needle)),
     )
   }, [rows, q])
 
-  // Per-category averages for the detail dialog
+  // Per-category averages for the detail dialog (numeric only; N/A etc. excluded)
   const catStats = useMemo(() => {
     if (!detail) return []
+    const ratings = (detail.ratings ?? {}) as Record<string, RatingValue>
     return detail.items.map((c) => {
-      const rated = c.skills.filter((s) => detail.ratings && s in detail.ratings)
-      const avg = rated.length > 0
-        ? rated.reduce((n, s) => n + (detail.ratings![s] ?? 0), 0) / rated.length
-        : null
-      return { category: c.category, total: c.skills.length, rated: rated.length, avg }
+      const rated = c.skills.filter((s) => s.name in ratings)
+      const nums = rated.map((s) => ratings[s.name]).filter((v): v is number => typeof v === 'number')
+      const avg = nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null
+      const naCount = rated.filter((s) => ratings[s.name] === 'na').length
+      return { category: c.category, total: c.skills.length, rated: rated.length, avg, naCount }
     })
   }, [detail])
 
@@ -126,14 +122,6 @@ export function ChecklistsPanel({ version }: Props) {
               </button>
             ))}
           </div>
-          <select value={template} onChange={(e) => setTemplate(e.target.value)}
-            aria-label="Filter by template"
-            className="h-10 rounded-xl border border-[#e2e8f0] bg-white px-3 text-[13px] font-semibold text-[#334155] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c7d2fe]">
-            <option value="all">All templates</option>
-            {Object.entries(TEMPLATE_LABELS).map(([k, label]) => (
-              <option key={k} value={k}>{label}</option>
-            ))}
-          </select>
           <div className="relative flex-1 min-w-[200px]">
             <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate or recruiter…"
@@ -168,8 +156,8 @@ export function ChecklistsPanel({ version }: Props) {
                   {r.ownerCompany ? ` (${r.ownerCompany})` : ''}
                 </div>
               </div>
-              <span className="text-[10.5px] font-extrabold uppercase tracking-wide px-2 py-1 rounded-lg bg-[#f1f5f9] border border-[#e2e8f0] text-[#475569]">
-                {TEMPLATE_LABELS[r.templateKey] ?? r.templateKey}
+              <span className="text-[10.5px] font-extrabold uppercase tracking-wide px-2 py-1 rounded-lg bg-[#f1f5f9] border border-[#e2e8f0] text-[#475569] max-w-[260px] truncate">
+                {r.templateLabel}
               </span>
               <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
                 r.status === 'submitted' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
@@ -182,9 +170,6 @@ export function ChecklistsPanel({ version }: Props) {
                 r.avgRating != null ? ratingColor(r.avgRating) : 'text-[#c3cbd8]'
               }`}>
                 {r.avgRating != null ? r.avgRating.toFixed(1) : '—'}
-              </span>
-              <span className="text-[11.5px] text-[#94a3b8] w-[92px] text-right hidden sm:block">
-                {new Date(r.updatedAt).toLocaleDateString()}
               </span>
             </button>
           ))}
@@ -222,6 +207,7 @@ export function ChecklistsPanel({ version }: Props) {
                       <div className="text-[22px] font-extrabold text-white tabular-nums leading-none mt-0.5">
                         {detail.avgRating.toFixed(1)}
                       </div>
+                      <div className="text-[9.5px] text-[#a8b8d8] mt-0.5">of 4</div>
                     </div>
                   )}
                   <div className="text-[12px] text-[#a8b8d8]">
@@ -249,9 +235,9 @@ export function ChecklistsPanel({ version }: Props) {
                           <div className="text-[9.5px] font-bold uppercase tracking-[0.6px] text-[#64748b] leading-snug">{c.category}</div>
                           <div className={`text-[17px] font-extrabold tabular-nums mt-0.5 ${c.avg != null ? ratingColor(c.avg) : 'text-[#94a3b8]'}`}>
                             {c.avg != null ? c.avg.toFixed(1) : '—'}
-                            <span className="text-[10.5px] font-semibold text-[#94a3b8] ml-1">/ 5</span>
+                            <span className="text-[10.5px] font-semibold text-[#94a3b8] ml-1">/ 4</span>
                           </div>
-                          <div className="text-[10px] text-[#94a3b8] mt-0.5">{c.rated} of {c.total} skills</div>
+                          <div className="text-[10px] text-[#94a3b8] mt-0.5">{c.rated} of {c.total} skills{c.naCount > 0 ? ` · ${c.naCount} N/A` : ''}</div>
                         </div>
                       ))}
                     </div>
@@ -262,9 +248,9 @@ export function ChecklistsPanel({ version }: Props) {
                           <div className="font-bold text-[12px] text-[#334155] uppercase tracking-wide mb-2.5">{c.category}</div>
                           <div className="grid gap-1.5">
                             {c.skills.map((s) => (
-                              <div key={s} className="flex items-center justify-between gap-3 flex-wrap">
-                                <span className="text-[13px] text-[#0f172a] font-medium">{s}</span>
-                                <RatingBadge value={detail.ratings?.[s] ?? null} />
+                              <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap">
+                                <span className="text-[13px] text-[#0f172a] font-medium">{s.name}</span>
+                                <RatingBadge value={((detail.ratings ?? {}) as Record<string, RatingValue>)[s.name] ?? null} questionType={s.questionType} />
                               </div>
                             ))}
                           </div>

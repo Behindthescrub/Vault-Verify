@@ -8,12 +8,14 @@ import { ChecklistsPanel } from '@/components/admin/checklists-panel'
 import { UsersPanel } from '@/components/admin/users-panel'
 import { EmailPanel } from '@/components/admin/email-panel'
 import { KeysPanel } from '@/components/admin/keys-panel'
+import { SkillsPanel } from '@/components/admin/skills-panel'
 import { ShieldCheck } from 'lucide-react'
 
-type AdminTab = 'overview' | 'data' | 'users' | 'email' | 'keys'
+type AdminTab = 'overview' | 'skills' | 'data' | 'users' | 'email' | 'keys'
 
 const TABS: { key: AdminTab; label: string }[] = [
   { key: 'overview', label: 'Overview' },
+  { key: 'skills', label: 'Skills data' },
   { key: 'data', label: 'Checklist data' },
   { key: 'users', label: 'Users & auth' },
   { key: 'email', label: 'Email' },
@@ -33,7 +35,7 @@ export function AdminView() {
           <ShieldCheck className="w-6 h-6 text-[#4f46e5]" /> Superadmin
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
-          Platform-wide data &amp; configuration — every checklist, account, session and calculator run on Recruiter tool.
+          Platform-wide data &amp; configuration — skills library, every checklist, account, session and calculator run on Recruiter tool.
         </p>
       </div>
 
@@ -53,6 +55,7 @@ export function AdminView() {
       </div>
 
       {tab === 'overview' && <OverviewPanel version={version} />}
+      {tab === 'skills' && <SkillsPanel />}
       {tab === 'data' && <ChecklistsPanel version={version} />}
       {tab === 'users' && <UsersPanel version={version} />}
       {tab === 'email' && <EmailPanel />}

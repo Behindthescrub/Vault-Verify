@@ -62,19 +62,52 @@ model PlatformSetting {
   updatedAt        DateTime @updatedAt
 }
 
-// ─── Skills checklists ──────────────────────────────────────────────
+// ─── Skills data (MyZipVault model: Profession → Job Title → Specialty → Category → Skill)
+// Managed by the superadmin; imported from the Skills Data xlsx template.
+model SkillTemplate {
+  id         String   @id @default(cuid())
+  profession String
+  jobTitle   String
+  specialty  String
+  name       String // "{jobTitle} - {specialty} Skill Checklist"
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  skills     Skill[]
+
+  @@unique([profession, jobTitle, specialty])
+  @@index([profession, jobTitle])
+}
+
+model Skill {
+  id           String        @id @default(cuid())
+  templateId   String
+  template     SkillTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  skillName    String
+  category     String
+  questionType String        @default("rating_1_4") // rating_1_4 | yes_no | text
+  sortOrder    Int           @default(0)
+  hasNaOption  Boolean       @default(false)
+
+  @@index([templateId, category, sortOrder])
+}
+
+// ─── Skills checklists (sent to candidates) ──────────────────────
 model Checklist {
   id              String    @id @default(cuid())
   userId          String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title           String
-  templateKey     String    @default("rn") // rn | lpn | cna | pt | ot | rrt | custom
+  templateId      String? // snapshot source (no FK: templates may be deleted later)
+  templateLabel   String    @default("Skills Checklist") // "Profession | Job Title | Specialty" snapshot
   candidateName   String?
   candidateEmail  String?
   status          String    @default("draft") // draft | sent | submitted
   submittedVia   String? // "link" | "manual" — set on completion
   token           String    @unique @default(cuid())
-  itemsJson       String // [{category, skills:[string]}]
+  itemsJson       String // snapshot: [{category, skills:[{name, questionType, hasNaOption}]}]
   inviteSentAt    DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -86,8 +119,9 @@ model ChecklistResponse {
   id          String   @id @default(cuid())
   checklistId String   @unique
   checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
-  ratingsJson String // {"<skill>": 1..5}
-  avgRating   Float?
+  ratingsJson String // {"<skill>": 1..4 | "na" | "yes" | "no" | "<text>"}
+  avgRating   Float? // mean of numeric ratings (N/A excluded)
+  signedName  String? // candidate's typed signature on submit
   completedAt DateTime @default(now())
 }
 
