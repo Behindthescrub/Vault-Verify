@@ -45,6 +45,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       to: parsed.data.toEmail,
       toName: c.candidateName ?? undefined,
       force: true,
+      origin,
       vars: {
         candidate_name: c.candidateName ?? '',
         candidate_name_suffix: c.candidateName ? ` ${c.candidateName}` : '',

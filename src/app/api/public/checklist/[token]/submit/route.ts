@@ -144,6 +144,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           key: 'candidate_confirmation',
           to: candidateEmail,
           toName: candidateName || undefined,
+          origin: req.nextUrl.origin,
           vars: {
             ...sharedVars,
             signed_name: parsed.data.printedName ?? parsed.data.signedName,
@@ -161,6 +162,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           key: 'recruiter_results',
           to: owner.email,
           toName: owner.name ?? undefined,
+          origin: req.nextUrl.origin,
           vars: {
             ...sharedVars,
             recruiter_name: owner.name || owner.email,

@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       to,
       vars,
       force: true,
+      origin,
     })
     if (result && !result.ok) return NextResponse.json({ error: `Email failed: ${result.error}`, status: result.status }, { status: 502 })
     return NextResponse.json({ ok: true, emailStatus: result?.status ?? 'skipped', sentTo: to, templateKey, messageId: result?.messageId })

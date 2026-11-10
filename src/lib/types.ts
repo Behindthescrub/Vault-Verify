@@ -78,6 +78,7 @@ export type EmailTemplateView = {
   automated: boolean
   purpose: string
   subject: string
+  preheader: string
   bodyHtml: string
   isActive: boolean
   updatedAt: string

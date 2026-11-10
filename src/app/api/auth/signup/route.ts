@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       key: 'recruiter_welcome',
       to: user.email,
       toName: user.name ?? undefined,
+      origin: req.nextUrl.origin,
       vars: {
         name: user.name || user.email,
         name_suffix: user.name ? ` ${user.name}` : '',

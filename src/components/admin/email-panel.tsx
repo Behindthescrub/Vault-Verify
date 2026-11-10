@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { api } from '@/lib/client-api'
 import { renderTemplate } from '@/lib/template-render'
+import { buildEmailFrame, EMAIL_LOGO_PATH } from '@/lib/email-frame'
 import type { EmailTemplateView, PlatformSettingsView } from '@/lib/types'
 import {
   AlertTriangle, BadgeCheck, Eye, History, Info, Loader2, Mail, MailOpen, Mails, Monitor, RotateCcw, RefreshCw, Save, Send, Smartphone,
@@ -173,7 +174,7 @@ export function EmailPanel() {
         }),
       })
       setTemplates((list) => list.map((t) => (t.key === data.template.key ? data.template : t)))
-      setTplMsg('Template saved — this exact HTML now goes out to recipients.')
+      setTplMsg('Template saved — this content now goes out inside the branded frame.')
       setTimeout(() => setTplMsg(''), 4000)
     } catch (e) {
       setTplError(e instanceof Error ? e.message : 'Save failed')
@@ -253,7 +254,8 @@ export function EmailPanel() {
     } catch { /* keep old state on failure */ }
   }
 
-  // Live preview: sample vars + the CURRENT sender identity.
+  // Live preview: sample vars + the CURRENT sender identity, wrapped in the
+  // branded frame — exactly what a real send delivers.
   const previewVars = useMemo(() => {
     if (!editing) return {}
     return {
@@ -266,7 +268,16 @@ export function EmailPanel() {
     }
   }, [editing, settings?.brevoSenderName, settings?.brevoSenderEmail, settings?.emailTestMode])
 
-  const previewHtml = useMemo(() => renderTemplate(tplHtml, previewVars), [tplHtml, previewVars])
+  const previewHtml = useMemo(() => {
+    const content = renderTemplate(tplHtml, previewVars)
+    return buildEmailFrame(content, {
+      logoUrl: EMAIL_LOGO_PATH,
+      appUrl: typeof window !== 'undefined' ? window.location.origin : undefined,
+      senderName: settings?.brevoSenderName || 'VaultVerify',
+      validDays: '30',
+      preheader: editing ? renderTemplate(editing.preheader, previewVars) : undefined,
+    })
+  }, [tplHtml, previewVars, editing, settings?.brevoSenderName])
   const previewSubject = useMemo(() => renderTemplate(tplSubject, previewVars), [tplSubject, previewVars])
 
   function insertVar(v: string) {
@@ -461,6 +472,9 @@ export function EmailPanel() {
                   <Input value={tplSubject} onChange={(e) => setTplSubject(e.target.value)} className="h-11 font-medium" maxLength={300} />
 
                   <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155] block mt-4 mb-2">HTML body</Label>
+                  <p className="text-[11px] text-[#94a3b8] -mt-1 mb-2">
+                    Content only — the branded frame (logo header, content box, company banner) wraps every send automatically.
+                  </p>
                   <Textarea
                     ref={htmlRef}
                     value={tplHtml}

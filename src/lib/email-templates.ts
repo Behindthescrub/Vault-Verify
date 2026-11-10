@@ -1,55 +1,64 @@
-// SMTP email templates — the full branded set the platform sends.
+// Transactional email templates — the content library the platform sends.
 // Managed by the platform admin (Email tab): subject + HTML body per template,
 // live preview, per-template test send, reset to default.
 //
 // Templates are stored in the EmailTemplate table; rows are created lazily
 // from the DEFAULT_TEMPLATES below. Placeholders use {{var}} syntax.
+//
+// bodyHtml is the CONTENT ONLY (heading, copy, detail boxes, CTA) — the
+// branded shell (logo lockup top, content box, company banner bottom) is
+// applied at send time by buildEmailFrame, so the whole platform's email
+// branding can be upgraded in one place.
 
 import { db } from '@/lib/db'
 import { sendEmail, type SendResult } from '@/lib/email'
 import { VALIDITY_DAYS } from '@/lib/skills'
 import { renderTemplate } from '@/lib/template-render'
+import { buildEmailFrame, EMAIL_LOGO_PATH } from '@/lib/email-frame'
 
 export { renderTemplate }
 
-// ─── Shared branded building blocks ──────────────────────────────────
+// ─── Shared content building blocks (inside the branded frame) ───────
 
-const LOGO = `
-  <div style="font-size:21px;font-weight:700;letter-spacing:0.4px;color:#fff;font-family:Arial,Helvetica,sans-serif">
-    Vault<span style="color:#8BC34A">Verify</span>
-  </div>`
+const SANS = 'Arial,Helvetica,sans-serif'
 
-const FOOTER = `
-  <div style="background:#EDF6F1;padding:16px 28px;font-size:11.5px;color:#5B6B66;line-height:1.7;font-family:Arial,Helvetica,sans-serif">
-    <strong style="color:#1E6B3C">VaultVerify</strong> · Skills verification for healthcare staffing<br>
-    Self-assessed — not independently verified · Checklists are valid {{valid_days}} days after completion<br>
-    Sent by {{sender_name}} &lt;{{sender_email}}&gt;
-  </div>`
+const H = (title: string, sub?: string) => `
+  <h1 style="margin:0 0 8px;font-family:${SANS};font-size:21px;line-height:1.3;font-weight:700;color:#0A2B23;letter-spacing:-0.2px">${title}</h1>
+  ${sub ? `<p style="margin:0 0 20px;font-family:${SANS};font-size:13px;line-height:1.5;color:#8A9A94">${sub}</p>` : ''}`
+
+const P = (html: string) => `
+  <p style="margin:0 0 14px;font-family:${SANS};font-size:15px;line-height:1.65;color:#41504B">${html}</p>`
+
+const SMALL = (html: string) => `
+  <p style="margin:18px 0 0;font-family:${SANS};font-size:12px;line-height:1.6;color:#8A9A94">${html}</p>`
+
+const NOTE = (html: string) => `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0">
+    <tr><td style="background-color:#F0F7F4;border-left:4px solid #2E9E5B;border-radius:0 10px 10px 0;padding:13px 16px;font-family:${SANS};font-size:13.5px;line-height:1.6;color:#41504B">${html}</td></tr>
+  </table>`
+
+const INFO = (rows: Array<[string, string]>) => `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;background-color:#F6FAF8;border:1px solid #DCE9E2;border-radius:12px">
+    <tr><td style="padding:4px 18px 8px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        ${rows.map(([label, value], i) => `
+        <tr>
+          <td style="padding:${i === 0 ? 10 : 9}px 0;${i > 0 ? 'border-top:1px solid #E4EEEA;' : ''}font-family:${SANS};font-size:13px;line-height:1.4;color:#5B6B66">${label}</td>
+          <td align="right" style="padding:${i === 0 ? 10 : 9}px 0;${i > 0 ? 'border-top:1px solid #E4EEEA;' : ''}font-family:${SANS};font-size:13.5px;line-height:1.4;font-weight:700;color:#0A2B23">${value}</td>
+        </tr>`).join('')}
+      </table>
+    </td></tr>
+  </table>`
 
 const CTA = (label: string) => `
-  <p style="text-align:center;margin:28px 0 10px">
-    <a href="{{link}}" style="background:#1F7A44;background-image:linear-gradient(180deg,#2E9E5B,#1E6B3C);color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;display:inline-block;font-family:Arial,Helvetica,sans-serif">${label}</a>
-  </p>
-  <p style="font-size:12px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif">
-    If the button doesn't work, paste this link into your browser:<br>
-    <a href="{{link}}" style="color:#1F7A44;word-break:break-all">{{link}}</a>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 10px">
+    <tr><td align="center">
+      <a href="{{link}}" style="display:inline-block;background-color:#1F7A44;background-image:linear-gradient(180deg,#2E9E5B 0%,#1E6B3C 100%);color:#FFFFFF;text-decoration:none;font-family:${SANS};font-weight:700;font-size:15px;padding:14px 34px;border-radius:10px;border-bottom:2px solid #175A33">${label}</a>
+    </td></tr>
+  </table>
+  <p style="margin:0;text-align:center;font-family:${SANS};font-size:11.5px;line-height:1.6;color:#8A9A94">
+    Button not working? <a href="{{link}}" style="color:#1F7A44;word-break:break-all">open this link</a> in your browser.
   </p>`
-
-function card(title: string, sub: string, body: string, footer = FOOTER): string {
-  return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
-    <div style="background:#0A2B23;background-image:linear-gradient(135deg,#0A2B23,#0E3B32);border-radius:16px 16px 0 0;padding:24px 28px;color:#fff">
-      ${LOGO}
-      <div style="height:4px;width:64px;background:#8BC34A;border-radius:2px;margin:10px 0 14px"></div>
-      <h2 style="margin:0;font-size:18px;font-weight:700;color:#fff">${title}</h2>
-      ${sub ? `<p style="margin:6px 0 0;color:#A8CFB8;font-size:13px">${sub}</p>` : ''}
-    </div>
-    <div style="background:#fff;border:1px solid #e2e8f0;border-top:0;padding:26px 28px;font-size:14px;color:#475569;line-height:1.65;font-family:Arial,Helvetica,sans-serif">
-      ${body}
-    </div>
-    ${footer}
-  </div>`
-}
 
 // ─── The template set ────────────────────────────────────────────────
 
@@ -68,6 +77,7 @@ export type TemplateDef = {
   purpose: string // email-log purpose
   automated: boolean // true = fired by the system; false = sent on demand
   subject: string
+  preheader: string // hidden inbox preview text (frame-level, not stored in DB)
   bodyHtml: string
   sampleVars: Record<string, string>
 }
@@ -80,29 +90,18 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'invite',
     automated: false,
     subject: 'Skills Checklist invitation — {{checklist_title}}',
-    bodyHtml: card(
-      'Skills Checklist Invitation',
-      'from {{recruiter_name}}{{company_suffix}}',
-      `
-      <p style="font-size:15px;color:#0f172a">Hello{{candidate_name_suffix}},</p>
+    preheader: '{{candidate_name}}, your {{checklist_title}} skills checklist is ready — about 10–15 minutes.',
+    bodyHtml: `
+      ${H('Skills Checklist invitation', 'from {{recruiter_name}}{{company_suffix}}')}
+      ${P('Hello{{candidate_name_suffix}},')}
       {{personal_message}}
-      <p>
-        Please complete the <strong style="color:#0f172a">{{checklist_title}}</strong> skills checklist
-        — {{skill_count}} skills, about 10–15 minutes.
-      </p>
-      <p>
-        You'll rate each skill from 1 (no experience) to 4 (expert), tell us when you last performed it,
-        and sign a short attestation that the ratings are your own. No account or password needed.
-      </p>
-      <p style="background:#EDF6F1;border-left:4px solid #2E9E5B;border-radius:0 8px 8px 0;padding:12px 14px;margin:20px 0">
-        <strong style="color:#1E6B3C">Honesty first:</strong> this is a self-assessment, clearly labeled as such.
-        Rate what you have actually done — your recruiter values accuracy over inflated numbers.
-      </p>
+      ${P('Please complete the <strong style="color:#0A2B23">{{checklist_title}}</strong> skills checklist — {{skill_count}} skills, about 10–15 minutes.')}
+      ${P(`You'll rate each skill from 1 (no experience) to 4 (expert), tell us when you last performed it,
+        and sign a short attestation that the ratings are your own. No account or password needed.`)}
+      ${NOTE(`<strong style="color:#1E6B3C">Honesty first:</strong> this is a self-assessment, clearly labeled as such.
+        Rate what you have actually done — your recruiter values accuracy over inflated numbers.`)}
       ${CTA('Open the checklist')}
-      <p style="font-size:12px;color:#94a3b8;margin-top:18px">
-        Completed checklists are valid for {{valid_days}} days.
-      </p>`,
-    ),
+      ${SMALL('Completed checklists are valid for {{valid_days}} days.')}`,
     sampleVars: {
       candidate_name: 'Jordan Rivera',
       candidate_name_suffix: ' Jordan',
@@ -126,22 +125,15 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'reminder',
     automated: false,
     subject: 'Reminder: {{checklist_title}} skills checklist is waiting',
-    bodyHtml: card(
-      'Friendly Reminder',
-      '{{checklist_title}} · still pending',
-      `
-      <p style="font-size:15px;color:#0f172a">Hello{{candidate_name_suffix}},</p>
+    preheader: 'Reminder — your {{checklist_title}} skills checklist is still waiting for you.',
+    bodyHtml: `
+      ${H('Friendly reminder', '{{checklist_title}} · still pending')}
+      ${P('Hello{{candidate_name_suffix}},')}
       {{personal_message}}
-      <p>
-        The <strong style="color:#0f172a">{{checklist_title}}</strong> skills checklist from
-        {{recruiter_name}}{{company_suffix}} is still waiting for you — {{skill_count}} skills, about 10–15 minutes.
-      </p>
-      <p>Your ratings help your recruiter match you to the right position, so accuracy matters more than perfection.</p>
+      ${P('The <strong style="color:#0A2B23">{{checklist_title}}</strong> skills checklist from {{recruiter_name}}{{company_suffix}} is still waiting for you — {{skill_count}} skills, about 10–15 minutes.')}
+      ${P('Your ratings help your recruiter match you to the right position, so accuracy matters more than perfection.')}
       ${CTA('Complete the checklist')}
-      <p style="font-size:12px;color:#94a3b8;margin-top:18px">
-        Already completed it? You can ignore this reminder — checklists are valid {{valid_days}} days after submission.
-      </p>`,
-    ),
+      ${SMALL('Already completed it? You can ignore this reminder — checklists stay valid for {{valid_days}} days after submission.')}`,
     sampleVars: {
       candidate_name: 'Jordan Rivera',
       candidate_name_suffix: ' Jordan',
@@ -164,32 +156,17 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'confirmation',
     automated: true,
     subject: 'Received — your {{checklist_title}} skills checklist',
-    bodyHtml: card(
-      'Checklist Received',
-      'submitted {{completed_at}}',
-      `
-      <p style="font-size:15px;color:#0f172a">Hello{{candidate_name_suffix}},</p>
-      <p>
-        Thank you — your <strong style="color:#0f172a">{{checklist_title}}</strong> skills checklist
-        ({{skill_count}} skills) has been submitted to {{recruiter_name}}{{company_suffix}}.
-      </p>
-      <p>Here's your summary:</p>
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin:14px 0">
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Average self-rating</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#1E6B3C">{{avg_rating}} / 4.0</strong></td>
-        </tr>
-        <tr><td style="height:8px"></td></tr>
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Valid until</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#0f172a">{{valid_until}}</strong></td>
-        </tr>
-      </table>
-      <p style="font-size:12.5px;color:#94a3b8">
-        A copy with your e-signature ({{signed_name}}) is on file with your recruiter.
-        No further action is needed — if they have questions, they'll reach out directly.
-      </p>`,
-    ),
+    preheader: 'Got it — your {{checklist_title}} skills checklist has been received.',
+    bodyHtml: `
+      ${H('Checklist received', 'submitted {{completed_at}}')}
+      ${P('Hello{{candidate_name_suffix}},')}
+      ${P('Thank you — your <strong style="color:#0A2B23">{{checklist_title}}</strong> skills checklist ({{skill_count}} skills) has been submitted to {{recruiter_name}}{{company_suffix}}.')}
+      ${INFO([
+        ['Average self-rating', '<span style="color:#1E7A5A">{{avg_rating}} / 4.0</span>'],
+        ['Valid until', '{{valid_until}}'],
+      ])}
+      ${SMALL(`A copy with your e-signature ({{signed_name}}) is on file with your recruiter.
+        No further action is needed — if they have questions, they'll reach out directly.`)}`,
     sampleVars: {
       candidate_name: 'Jordan Rivera',
       candidate_name_suffix: ' Jordan',
@@ -214,34 +191,18 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'results',
     automated: true,
     subject: '✅ {{candidate_name}} completed {{checklist_title}}',
-    bodyHtml: card(
-      'Checklist Completed',
-      'by {{candidate_name}}',
-      `
-      <p style="font-size:15px;color:#0f172a">Hi{{recruiter_name_suffix}},</p>
-      <p>
-        <strong style="color:#0f172a">{{candidate_name}}</strong> has submitted the
-        <strong style="color:#0f172a">{{checklist_title}}</strong> skills checklist ({{skill_count}} skills).
-      </p>
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin:14px 0">
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Average rating</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#1E6B3C">{{avg_rating}} / 4.0</strong></td>
-        </tr>
-        <tr><td style="height:8px"></td></tr>
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Self-reported experience</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#0f172a">{{experience_years}}</strong></td>
-        </tr>
-        <tr><td style="height:8px"></td></tr>
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Valid until</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#0f172a">{{valid_until}}</strong></td>
-        </tr>
-      </table>
-      <p>Open the results to see the full breakdown: rating mix, recency per skill and the signed attestation — then export the branded PDF.</p>
+    preheader: '{{candidate_name}} completed the {{checklist_title}} checklist — average {{avg_rating}} / 4.0.',
+    bodyHtml: `
+      ${H('Checklist completed', 'by {{candidate_name}}')}
+      ${P('Hi{{recruiter_name_suffix}},')}
+      ${P('<strong style="color:#0A2B23">{{candidate_name}}</strong> has submitted the <strong style="color:#0A2B23">{{checklist_title}}</strong> skills checklist ({{skill_count}} skills).')}
+      ${INFO([
+        ['Average rating', '<span style="color:#1E7A5A">{{avg_rating}} / 4.0</span>'],
+        ['Self-reported experience', '{{experience_years}}'],
+        ['Valid until', '{{valid_until}}'],
+      ])}
+      ${P('Open the results to see the full breakdown — rating mix, recency per skill and the signed attestation — then export the branded PDF.')}
       ${CTA('View results & export PDF')}`,
-    ),
     sampleVars: {
       recruiter_name: 'Alex Morgan',
       recruiter_name_suffix: ' Alex',
@@ -264,29 +225,19 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'welcome',
     automated: true,
     subject: 'Welcome to VaultVerify — your account is ready',
-    bodyHtml: card(
-      'Welcome aboard',
-      'your recruiter account is ready',
-      `
-      <p style="font-size:15px;color:#0f172a">Hi{{name_suffix}},</p>
-      <p>
-        Your VaultVerify account{{company_suffix}} is ready. Two tools, one login:
-      </p>
-      <p style="background:#EDF6F1;border-left:4px solid #2E9E5B;border-radius:0 8px 8px 0;padding:12px 16px;margin:18px 0">
-        <strong style="color:#1E6B3C">1 · Skills Checklists</strong><br>
+    preheader: 'Your VaultVerify account is ready — skills checklists + bill-to-pay calculator.',
+    bodyHtml: `
+      ${H('Welcome aboard', 'your VaultVerify account is ready')}
+      ${P('Hi{{name_suffix}},')}
+      ${P('Your VaultVerify account{{company_suffix}} is ready. Two tools, one login:')}
+      ${NOTE(`<strong style="color:#1E6B3C">1 · Skills Checklists</strong><br>
         Pick from 315 profession-specific templates, send a candidate their link,
-        and get back a signed, dated self-assessment — exportable as a branded PDF.
-      </p>
-      <p style="background:#EDF6F1;border-left:4px solid #2E9E5B;border-radius:0 8px 8px 0;padding:12px 16px;margin:18px 0">
-        <strong style="color:#1E6B3C">2 · Bill-to-Pay Calculator</strong><br>
+        and get back a signed, dated self-assessment — exportable as a branded PDF.`)}
+      ${NOTE(`<strong style="color:#1E6B3C">2 · Bill-to-Pay Calculator</strong><br>
         Bill rate → pay package with overtime, onboarding burden, worker's comp and live GSA per-diem
-        for travelers. Every run is saved and reloadable.
-      </p>
+        for travelers. Every run is saved and reloadable.`)}
       ${CTA('Open VaultVerify')}
-      <p style="font-size:12.5px;color:#94a3b8;margin-top:18px">
-        This account was created with {{account_email}}. If this wasn't you, just ignore this email.
-      </p>`,
-    ),
+      ${SMALL('This account was created with {{account_email}}. If this wasn\'t you, just ignore this email.')}`,
     sampleVars: {
       name: 'Alex Morgan',
       name_suffix: ' Alex',
@@ -306,30 +257,17 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     purpose: 'test',
     automated: false,
     subject: 'VaultVerify — test email',
-    bodyHtml: card(
-      'Test email',
-      'from the VaultVerify platform',
-      `
-      <p>This is a test email from <strong style="color:#0f172a">VaultVerify</strong>.</p>
-      <p>If you can read this, transactional email delivery is working end-to-end:</p>
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin:14px 0">
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Mode</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#1E6B3C">{{mode}}</strong></td>
-        </tr>
-        <tr><td style="height:8px"></td></tr>
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Sender</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#0f172a">{{sender_name}} &lt;{{sender_email}}&gt;</strong></td>
-        </tr>
-        <tr><td style="height:8px"></td></tr>
-        <tr>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:8px 0 0 8px;color:#475569">Template</td>
-          <td style="padding:10px 14px;background:#F6FAF8;border:1px solid #DCE9E2;border-radius:0 8px 8px 0"><strong style="color:#0f172a">{{template_name}}</strong></td>
-        </tr>
-      </table>
-      <p style="font-size:12.5px;color:#94a3b8">Sent {{sent_at}}.</p>`,
-    ),
+    preheader: 'VaultVerify delivery test — {{mode}} mode.',
+    bodyHtml: `
+      ${H('Test email', 'delivery verification · VaultVerify platform')}
+      ${P('This is a test email from <strong style="color:#0A2B23">VaultVerify</strong>. If you can read this, transactional email delivery is working end-to-end.')}
+      ${INFO([
+        ['Mode', '<span style="color:#1E7A5A">{{mode}}</span>'],
+        ['Sender', '{{sender_name}} &lt;{{sender_email}}&gt;'],
+        ['Template', '{{template_name}}'],
+        ['Sent', '{{sent_at}}'],
+      ])}
+      ${P('Questions or delivery problems? Check the send log in the platform console — every attempt is recorded there with its status.')}`,
     sampleVars: {
       mode: 'LIVE',
       sender_name: 'VaultVerify',
@@ -369,24 +307,41 @@ export type TemplateSendArgs = {
   rawKeys?: string[]
   /** on-demand templates (invite/reminder/test) always send; automated ones respect isActive */
   force?: boolean
+  /** app origin, e.g. https://app.example.com — powers the header logo + banner link */
+  origin?: string
 }
 
-/** Render + send a DB template. Returns null when skipped (disabled).
- *  Real sends NEVER fall back to sampleVars — only the universal vars
- *  (sender identity, validity window) are injected automatically. */
+function normalizeOrigin(origin?: string): string {
+  if (!origin) return ''
+  return origin.trim().replace(/\/+$/, '')
+}
+
+/** Render + send a DB template (content) wrapped in the branded frame.
+ *  Returns null when skipped (disabled). Real sends NEVER fall back to
+ *  sampleVars — only the universal vars (sender identity, validity window,
+ *  app URL) are injected automatically. */
 export async function sendTemplateEmail(args: TemplateSendArgs): Promise<SendResult | null> {
   const { row, def } = await getEmailTemplate(args.key)
   if (!args.force && !row.isActive) return null
 
   const platform = await db.platformSetting.findUnique({ where: { id: 'main' } })
+  const origin = normalizeOrigin(args.origin)
   const universal = {
     sender_name: platform?.brevoSenderName || 'VaultVerify',
     sender_email: platform?.brevoSenderEmail || '',
     valid_days: String(VALIDITY_DAYS),
+    app_url: origin,
   }
   const vars = { ...universal, ...args.vars }
   const subject = renderTemplate(row.subject, vars, args.rawKeys)
-  const html = renderTemplate(row.bodyHtml, vars, args.rawKeys)
+  const content = renderTemplate(row.bodyHtml, vars, args.rawKeys)
+  const html = buildEmailFrame(content, {
+    logoUrl: origin ? `${origin}${EMAIL_LOGO_PATH}` : undefined,
+    appUrl: origin || undefined,
+    senderName: vars.sender_name,
+    validDays: vars.valid_days,
+    preheader: renderTemplate(def.preheader, vars, args.rawKeys),
+  })
 
   return sendEmail({
     to: args.to,
