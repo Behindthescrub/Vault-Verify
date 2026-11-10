@@ -20,6 +20,13 @@ export async function POST(req: NextRequest) {
     if (!user || !verifyPassword(parsed.data.password, user.passwordHash)) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 })
     }
+
+    // Platform-admin accounts never authenticate through the recruiter app.
+    // Their only entry point is the admin console (/console → /api/auth/admin-login),
+    // so an admin session can never be created from the public-facing tool.
+    if (user.role === 'superadmin') {
+      return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 })
+    }
     await createSession(user.id)
     return NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name, company: user.company, role: user.role },
