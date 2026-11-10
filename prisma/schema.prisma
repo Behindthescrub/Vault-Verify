@@ -143,13 +143,14 @@ model Calculation {
 
 // ─── Email log (Brevo sends & test-mode entries) ─────────────────────
 model EmailLog {
-  id        String   @id @default(cuid())
-  toEmail   String
-  subject   String
-  purpose   String // invite | reminder | confirmation | results | welcome | test
-  status    String // sent | failed | test-mode
-  error     String?
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  toEmail           String
+  subject           String
+  purpose           String // invite | reminder | confirmation | results | welcome | test | diagnostic
+  status            String // sent | failed | test-mode
+  error             String?
+  providerMessageId String? // Brevo messageId — proof the API accepted this send
+  createdAt         DateTime @default(now())
 }
 
 // ─── SMTP email templates (managed by superadmin, VaultVerify-branded) ──

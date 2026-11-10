@@ -15,11 +15,25 @@ import { api } from '@/lib/client-api'
 import { renderTemplate } from '@/lib/template-render'
 import type { EmailTemplateView, PlatformSettingsView } from '@/lib/types'
 import {
-  Eye, History, Loader2, Mail, MailOpen, Mails, Monitor, RotateCcw, Save, Send, Smartphone,
+  AlertTriangle, BadgeCheck, Eye, History, Loader2, Mail, MailOpen, Mails, Monitor, RotateCcw, RefreshCw, Save, Send, Smartphone,
 } from 'lucide-react'
 
 type EmailLog = {
-  id: string; toEmail: string; subject: string; purpose: string; status: string; error: string | null; createdAt: string
+  id: string; toEmail: string; subject: string; purpose: string; status: string; error: string | null; providerMessageId: string | null; createdAt: string
+}
+
+type BrevoStatus = {
+  authenticated: boolean
+  reason?: string
+  error?: string
+  testMode: boolean
+  senderEmail: string
+  senderName: string
+  senderDomain: string
+  account?: { email: string; name?: string; company?: string; planType?: string; planCredits?: number }
+  senders: { email: string; name: string; active: boolean }[]
+  senderVerified?: boolean
+  senderFreeMail?: boolean
 }
 
 export function EmailPanel() {
@@ -28,6 +42,8 @@ export function EmailPanel() {
   const [logs, setLogs] = useState<EmailLog[]>([])
   const [templates, setTemplates] = useState<EmailTemplateView[]>([])
   const [loading, setLoading] = useState(true)
+  const [brevoStatus, setBrevoStatus] = useState<BrevoStatus | null>(null)
+  const [statusBusy, setStatusBusy] = useState(false)
 
   // form state — Brevo settings
   const [brevoKey, setBrevoKey] = useState('')
@@ -57,6 +73,13 @@ export function EmailPanel() {
   const [tplTestResult, setTplTestResult] = useState<{ ok: boolean; text: string } | null>(null)
   const htmlRef = useRef<HTMLTextAreaElement>(null)
 
+  const refreshBrevoStatus = useCallback(async () => {
+    setStatusBusy(true)
+    try {
+      setBrevoStatus(await api<BrevoStatus>('/api/admin/email-status'))
+    } catch { setBrevoStatus(null) } finally { setStatusBusy(false) }
+  }, [])
+
   const refresh = useCallback(async () => {
     try {
       const [s, l, t] = await Promise.all([
@@ -75,7 +98,8 @@ export function EmailPanel() {
     } catch { /* handled by empty renders */ } finally {
       setLoading(false)
     }
-  }, [])
+    refreshBrevoStatus()
+  }, [refreshBrevoStatus])
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -95,6 +119,7 @@ export function EmailPanel() {
       setBrevoKey('')
       setSaveMsg('Brevo settings saved.')
       setTimeout(() => setSaveMsg(''), 3000)
+      refreshBrevoStatus()
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Save failed')
     } finally {
@@ -105,7 +130,7 @@ export function EmailPanel() {
   async function sendTest() {
     setTestBusy(true); setTestResult(null)
     try {
-      const data = await api<{ emailStatus: string; sentTo: string }>('/api/admin/test-email', {
+      const data = await api<{ emailStatus: string; sentTo: string; messageId?: string }>('/api/admin/test-email', {
         method: 'POST',
         body: JSON.stringify({ to: testTo }),
       })
@@ -113,7 +138,7 @@ export function EmailPanel() {
         ok: true,
         text: data.emailStatus === 'test-mode'
           ? `Logged in test mode — no real email sent to ${data.sentTo}. Add a Brevo API key and disable test mode to send for real.`
-          : `Test email sent to ${data.sentTo} (Platform test email template).`,
+          : `Sent to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it hasn't arrived in a few minutes, check the spam folder — see the deliverability note above.`,
       })
       refresh()
     } catch (e) {
@@ -199,7 +224,7 @@ export function EmailPanel() {
     if (!editing) return
     setTplTestBusy(true); setTplTestResult(null)
     try {
-      const data = await api<{ emailStatus: string; sentTo: string }>('/api/admin/test-email', {
+      const data = await api<{ emailStatus: string; sentTo: string; messageId?: string }>('/api/admin/test-email', {
         method: 'POST',
         body: JSON.stringify({ to: tplTestTo || adminEmail, templateKey: editing.key }),
       })
@@ -207,7 +232,7 @@ export function EmailPanel() {
         ok: true,
         text: data.emailStatus === 'test-mode'
           ? `Logged in test mode — no real email sent to ${data.sentTo}.`
-          : `Sent this template to ${data.sentTo} — check the inbox.`,
+          : `Sent this template to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. Not in the inbox? Check the spam folder.`,
       })
       refresh()
     } catch (e) {
@@ -278,6 +303,8 @@ export function EmailPanel() {
               <span className="block mt-1">Current key: <code className="bg-[#f1f5f9] rounded px-1.5 py-0.5">{settings.brevoApiKeyMasked}</code></span>
             )}
           </p>
+
+          <BrevoAccountStrip status={brevoStatus} busy={statusBusy} onRefresh={refreshBrevoStatus} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
@@ -399,6 +426,11 @@ export function EmailPanel() {
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[#64748b] bg-[#f1f5f9] border border-[#e2e8f0] px-1.5 py-0.5 rounded-full">{l.purpose}</span>
                 <span className="text-[13px] font-semibold text-[#334155] truncate max-w-[220px]">{l.toEmail}</span>
                 <span className="text-[12px] text-[#94a3b8] flex-1 truncate">{l.subject}{l.error ? ` — ${l.error}` : ''}</span>
+                {l.providerMessageId && (
+                  <code title={l.providerMessageId} className="text-[10px] font-mono text-[#94a3b8] bg-[#f8fafc] border border-[#eef1f6] rounded px-1.5 py-0.5 truncate max-w-[190px]">
+                    {l.providerMessageId.length > 26 ? l.providerMessageId.slice(0, 26) + '…' : l.providerMessageId}
+                  </code>
+                )}
                 <span className="text-[11px] text-[#94a3b8]">{new Date(l.createdAt).toLocaleString()}</span>
               </div>
             ))}
@@ -532,6 +564,94 @@ export function EmailPanel() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+// ─── Connected Brevo account strip ────────────────────────────────────
+// Live truth from the Brevo API: which account the saved key belongs to
+// (the one being charged), its plan/quota, and whether the configured
+// sender actually verifies. Kills the "credits not deducted / which
+// dashboard am I looking at" confusion at a glance.
+const FREE_MAIL = ['gmail.com', 'googlemail.com', 'yahoo.com', 'ymail.com', 'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'aol.com', 'icloud.com', 'me.com', 'proton.me', 'protonmail.com']
+
+function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | null; busy: boolean; onRefresh: () => void }) {
+  if (!status) return null
+
+  if (!status.authenticated) {
+    const noKey = status.reason === 'no-key'
+    return (
+      <div className={`rounded-2xl border px-4 py-3 text-[12.5px] font-semibold flex items-center gap-2.5 ${
+        noKey ? 'bg-[#f8fafc] border-[#e2e8f0] text-[#64748b]' : 'bg-[#FDEEEE] border-[#F3B8BA] text-[#C13A3E]'
+      }`}>
+        <AlertTriangle className="w-4 h-4 shrink-0" />
+        <span className="flex-1">
+          {noKey
+            ? 'No Brevo API key saved yet — every send stays in test mode (logged, never delivered).'
+            : `Brevo rejected the saved key: ${status.error ?? 'unknown error'} — paste a valid xkeysib-… key below and save.`}
+        </span>
+        <button type="button" onClick={onRefresh} disabled={busy}
+          className="text-[#64748b] hover:bg-white rounded-lg p-1.5 transition-colors shrink-0" title="Re-check Brevo">
+          <RefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+    )
+  }
+
+  const a = status.account
+  const ownDomain = a?.email?.split('@')[1]?.toLowerCase()
+  const suggestDomain = ownDomain && !FREE_MAIL.includes(ownDomain) ? ownDomain : null
+
+  return (
+    <div className="rounded-2xl border border-[#CBE8D6] bg-[#F6FBF8] overflow-hidden divide-y divide-[#E3F2E9]">
+      <div className="px-4 py-3 flex items-center gap-2.5 flex-wrap">
+        <BadgeCheck className="w-4 h-4 text-[#1E6B3C] shrink-0" />
+        <span className="text-[13px] font-bold text-[#0f172a]">
+          Connected Brevo account: <span className="text-[#1E6B3C]">{a?.email ?? 'unknown'}</span>
+        </span>
+        {a?.planCredits != null && (
+          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]">
+            {a.planType} · {a.planCredits} emails/day
+          </span>
+        )}
+        <button type="button" onClick={onRefresh} disabled={busy}
+          className="ml-auto text-[#1E6B3C] hover:bg-[#E9F5EC] rounded-lg p-1.5 transition-colors shrink-0" title="Re-check the Brevo account">
+          <RefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+      {a?.planType === 'free' && (
+        <div className="px-4 py-2.5 text-[11.5px] text-[#64748b] leading-relaxed">
+          Free plan: sends draw from a <strong>300/day quota that resets every 24h</strong> — there is no prepaid credit balance to deduct.
+          To see usage, log into Brevo with <strong>{a.email}</strong> (not another Brevo login) and check <strong>Transactional → Real-time</strong>.
+        </div>
+      )}
+      <div className="px-4 py-3 flex items-center gap-2.5 flex-wrap">
+        {status.senderVerified ? (
+          <>
+            <BadgeCheck className="w-4 h-4 text-[#1E6B3C] shrink-0" />
+            <span className="text-[12.5px] text-[#334155]">
+              Sender <code className="bg-white border border-[#e2e8f0] rounded px-1 py-0.5">{status.senderEmail}</code> is verified &amp; active on this account — Brevo accepts emails from it.
+            </span>
+          </>
+        ) : (
+          <>
+            <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0" />
+            <span className="text-[12.5px] text-[#92400E]">
+              Sender <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">{status.senderEmail}</code> is <strong>not</strong> an active verified sender on this account —{' '}
+              <a href="https://app.brevo.com/senders" target="_blank" rel="noreferrer" className="font-bold underline">add &amp; verify it in Brevo</a> or sends will be rejected.
+            </span>
+          </>
+        )}
+      </div>
+      {status.senderFreeMail && (
+        <div className="px-4 py-3 flex items-start gap-2.5 bg-[#FFF9E6]">
+          <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
+          <span className="text-[12px] text-[#92400E] leading-relaxed">
+            <strong>Deliverability warning:</strong> {status.senderDomain} is a free-mail domain. Brevo cannot publish SPF/DKIM records for it, so inbox providers often sort these emails into <strong>spam</strong> — that is most likely where the earlier test emails ended up.
+            For reliable delivery, verify a sender on a domain you own{suggestDomain ? <> (e.g. <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">no-reply@{suggestDomain}</code>)</> : null} in Brevo with its SPF/DKIM records, then switch the sender above. Until then, check the spam folder when testing.
+          </span>
+        </div>
+      )}
     </div>
   )
 }

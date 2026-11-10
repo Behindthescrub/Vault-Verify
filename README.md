@@ -63,7 +63,7 @@ platform data, split into six tabs:
 | **Skills data** | The skills library itself: master-detail editor (Professions → Job Titles → Specialties → Skills) with add/edit/delete skills, rename/delete groups, and the **2-step Excel import** (validate → import) matching the MyZipVault `Skills Data` template, plus blank-template download and full-data export |
 | **Checklist data** | Every skills checklist + candidate response across all recruiter accounts, with status filters, search, full score-sheet view, and CSV export |
 | **Users & auth** | All accounts (checklists/runs counts) with **active sessions** — live auth login tokens — and every saved bill-to-pay run |
-| **Email** | Brevo API key, sender identity, test mode, test send, and the send log |
+| **Email** | Brevo API key, sender identity, test mode, test send, the branded template library (live preview + per-template test send + reset), the **connected-account strip** (live account, plan/quota, sender verification, free-mail spam warning), and the send log with Brevo `messageId` per send |
 | **Keys & access** | Shared GSA Per Diem API key and the superadmin credentials |
 
 What deliberately stays **per-user** (not superadmin): each recruiter's calculator

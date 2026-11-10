@@ -22,6 +22,8 @@ export type SendResult = {
   ok: boolean
   status: 'sent' | 'failed' | 'test-mode'
   error?: string
+  /** Brevo messageId — set when the API accepted the email (HTTP 2xx). */
+  messageId?: string
 }
 
 export async function sendEmail(args: SendArgs): Promise<SendResult> {
@@ -66,10 +68,13 @@ export async function sendEmail(args: SendArgs): Promise<SendResult> {
       })
       return { ok: false, status: 'failed', error: err }
     }
+    const messageId = typeof body === 'object' && body && 'messageId' in body
+      ? String((body as { messageId?: string }).messageId)
+      : undefined
     await db.emailLog.create({
-      data: { toEmail: args.to, subject: args.subject, purpose: args.purpose, status: 'sent' },
+      data: { toEmail: args.to, subject: args.subject, purpose: args.purpose, status: 'sent', providerMessageId: messageId },
     })
-    return { ok: true, status: 'sent' }
+    return { ok: true, status: 'sent', messageId }
   } catch (e) {
     const err = e instanceof Error ? e.message : 'unknown error'
     await db.emailLog.create({

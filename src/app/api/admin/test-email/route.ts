@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       force: true,
     })
     if (result && !result.ok) return NextResponse.json({ error: `Email failed: ${result.error}`, status: result.status }, { status: 502 })
-    return NextResponse.json({ ok: true, emailStatus: result?.status ?? 'skipped', sentTo: to, templateKey })
+    return NextResponse.json({ ok: true, emailStatus: result?.status ?? 'skipped', sentTo: to, templateKey, messageId: result?.messageId })
   } catch {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }

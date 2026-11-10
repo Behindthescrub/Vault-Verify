@@ -95,6 +95,24 @@ The Brevo API key is **not** an env var — you set it inside the app:
    delivered, and the checklist invite dialog shows a copyable link instead,
    so nothing breaks before your key is ready.
 
+**"No credits deducted" / "nothing received" — read this first.** The Email
+tab's **Connected Brevo account** strip shows the live account behind your
+key (e.g. `sam.p@medstalent.com — free · 300 emails/day`), so there's no
+guessing which dashboard to watch:
+
+- **Free plan = a 300/day quota that resets every 24h — there is no prepaid
+  credit balance.** To see usage, log into Brevo with *that exact account*
+  and open Transactional → Real-time. (An SMTP key from a different Brevo
+  login will be rejected — keys only work on the account that created them.)
+- **Every accepted send is logged with Brevo's `messageId`** in the send log
+  — that ID is proof Brevo took the email.
+- If messages are accepted but never appear in the inbox, they are almost
+  certainly in **spam**: a sender on a free-mail domain (gmail.com, …)
+  cannot have Brevo SPF/DKIM records. Verify a sender on a domain you own
+  (e.g. `no-reply@yourdomain.com`) with Brevo's DNS records, then switch the
+  sender in the Email tab — the strip flags this automatically with a
+  deliverability warning.
+
 ### GSA Per Diem key (optional, for the calculator's live fetch)
 
 1. Get a free key at [api.data.gov/sign-up](https://api.data.gov/sign-up/).

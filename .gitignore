@@ -70,3 +70,4 @@ server.log
 
 # user uploads (not part of the app)
 /upload/
+tool-results/
