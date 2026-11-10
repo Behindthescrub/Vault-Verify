@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button'
 import type { AppUser } from '@/lib/types'
-import { Calculator, CheckSquare, LogOut, Settings2, ShieldCheck } from 'lucide-react'
+import { Calculator, CheckSquare, ExternalLink, LogOut, Settings2, ShieldCheck } from 'lucide-react'
 
-export type Tab = 'checklists' | 'calculator' | 'settings' | 'admin'
+export type Tab = 'checklists' | 'calculator' | 'settings'
 
 const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
   { key: 'checklists', label: 'Checklists', icon: <CheckSquare className="w-4 h-4" /> },
@@ -18,10 +18,6 @@ export function TopBar({ user, tab, onTab, onLogout }: {
   onTab: (t: Tab) => void
   onLogout: () => void
 }) {
-  const tabs = user.role === 'superadmin'
-    ? [...TABS, { key: 'admin' as Tab, label: 'Superadmin', icon: <ShieldCheck className="w-4 h-4" /> }]
-    : TABS
-
   return (
     <header className="sticky top-0 z-40"
       style={{ background: 'linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
@@ -35,7 +31,7 @@ export function TopBar({ user, tab, onTab, onLogout }: {
           </div>
 
           <nav className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar" aria-label="Main navigation">
-            {tabs.map((t) => (
+            {TABS.map((t) => (
               <button key={t.key} onClick={() => onTab(t.key)}
                 aria-current={tab === t.key ? 'page' : undefined}
                 className={`h-9 px-3.5 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 ${
@@ -49,6 +45,12 @@ export function TopBar({ user, tab, onTab, onLogout }: {
           </nav>
 
           <div className="flex items-center gap-2 shrink-0">
+            {user.role === 'superadmin' && (
+              <a href="/superadmin" title="Open the superadmin console"
+                className="h-9 px-3 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 bg-[#4f46e5]/30 border border-[#818cf8]/40 text-[#c7d2fe] hover:bg-[#4f46e5]/50 hover:text-white transition-colors">
+                <ShieldCheck className="w-4 h-4" /> Superadmin <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </a>
+            )}
             <span className="text-[12px] text-[#a8b8d8] font-medium hidden md:block max-w-[180px] truncate">
               {user.email}
             </span>

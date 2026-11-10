@@ -32,11 +32,25 @@ bun run dev                # http://localhost:3000
 ```
 
 Default superadmin login: `admin@recruitertool.local` / `Superadmin@123`
-— change it immediately in **Superadmin → Keys & access → Superadmin credentials**.
+at **`/superadmin`** (dedicated console URL with its own username + password
+login — username `admin`, or the full email) — change the password immediately in
+**Keys & access → Superadmin credentials**.
+
+## URLs
+
+| URL | Who | What |
+| --- | --- | --- |
+| `/` | Recruiters | Log in / sign up (email + password) → checklists & calculator |
+| `/superadmin` | Superadmin only | Username + password console login → the six admin tabs below |
+| `/?c=<token>` | Candidates | Public checklist self-assessment (no account needed) |
 
 ## Superadmin (platform owner)
 
-One superadmin account owns all platform data, split into six tabs:
+The superadmin console lives at its own URL, **`/superadmin`**, with a dedicated
+username + password login (`POST /api/auth/admin-login` accepts the full email or
+its local part — e.g. `admin` for `admin@recruitertool.local`; only accounts with
+the `superadmin` role can sign in there). One superadmin account owns all
+platform data, split into six tabs:
 
 | Tab | What lives there |
 | --- | --- |
@@ -61,7 +75,7 @@ columns: `Profession | Job Title | Specialty | Category | Skill Name | Question
 Type | Has N/A Option`. Question types: `rating_1_4` (default), `yes_no`, `text`.
 Rows are keyed by (Profession, Job Title, Specialty); duplicates are skipped, and
 missing templates are created automatically. The initial 32,837-row dataset
-ships as `prisma/seed-skills.json` and is seeded on first run.
+ships as `prisma/seed-skills.xlsx` and is seeded on first run.
 
 ## Deploying (GitHub → Vercel → Supabase → Brevo)
 
@@ -71,12 +85,13 @@ See **[DEPLOY.md](./DEPLOY.md)** for the full step-by-step guide.
 
 ```
 prisma/schema.prisma     # data model (User, SkillTemplate, Skill, Checklist, …)
-prisma/seed-skills.json  # 32,837-row skills dataset (MyZipVault import template)
+prisma/seed-skills.xlsx  # 32,837-row skills dataset (MyZipVault import template)
 scripts/seed.ts          # superadmin + skills seed
 src/lib/skills.ts        # 1–4 scale, xlsx import/export, checklist snapshots
 src/lib/                 # auth, email (Brevo), GSA, calculator math
 src/app/api/             # REST API routes
-src/app/page.tsx         # the app (single route, view-switched)
+src/app/page.tsx         # the recruiter app (single route, view-switched)
+src/app/superadmin/      # /superadmin — console login + admin shell
 src/components/          # calculator, checklists, admin, auth UI
 src/components/admin/    # superadmin panels (overview, skills, data, users, email, keys)
 ```
@@ -87,6 +102,8 @@ src/components/admin/    # superadmin panels (overview, skills, data, users, ema
   (SameSite=Lax, Secure in production), stored server-side with expiry.
 - All checklist/calculation APIs are scoped to the owning user; superadmin-only
   routes check the role server-side.
+- `/api/auth/admin-login` only authenticates `superadmin`-role accounts; regular
+  users who hit `/superadmin` get an access-restricted page.
 - Candidate links use unguessable tokens; a submitted checklist cannot be
   re-submitted.
 - Skills xlsx uploads are capped at 10MB, parsed server-side only, and every

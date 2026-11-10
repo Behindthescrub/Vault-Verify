@@ -8,7 +8,6 @@ import { ChecklistDetail } from '@/components/checklist-detail'
 import { ManualEntry } from '@/components/manual-entry'
 import { CalculatorView } from '@/components/calculator-view'
 import { SettingsView } from '@/components/settings-view'
-import { AdminView } from '@/components/admin-view'
 import { PublicFill } from '@/components/public-fill'
 import { api } from '@/lib/client-api'
 import type { AppUser, UserSettings } from '@/lib/types'
@@ -102,8 +101,6 @@ export default function Home() {
       content = <CalculatorView settings={settings} onSettingsChange={onSettingsChange} />
     } else if (view.tab === 'settings') {
       content = <SettingsView user={user} settings={settings} onSettingsChange={onSettingsChange} />
-    } else {
-      content = <AdminView />
     }
   } else if (view.kind === 'checklist-detail') {
     content = (

@@ -137,6 +137,17 @@ export function AuthView({ onAuthed }: Props) {
             className="mt-5 text-[13px] font-semibold text-[#4f46e5] hover:text-[#4338ca] cursor-pointer">
             {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
           </button>
+
+          {mode === 'login' && (
+            <div className="mt-6 pt-5 border-t border-[#eef1f6] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#4f46e5] shrink-0" />
+              <span className="text-[12px] text-[#64748b]">Platform administrator?</span>
+              <a href="/superadmin"
+                className="text-[12px] font-bold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1">
+                Superadmin console →
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>

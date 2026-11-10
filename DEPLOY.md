@@ -66,8 +66,11 @@ SUPERADMIN_PASSWORD="ChooseAStrongPassword" \
   bun scripts/seed.ts
 ```
 
-Visit your Vercel URL, log in as the superadmin, and change the password in
-**Superadmin → Keys & access → Superadmin credentials**.
+Visit **`https://<your-app>.vercel.app/superadmin`** — the superadmin console has
+its own URL with a username + password login (enter `you@yourdomain.com`, or just
+`you` — the local part of the email — as the username). Log in there and change
+the password in **Keys & access → Superadmin credentials**. The recruiter app at
+`/` stays completely separate for your staffing accounts.
 
 > Local dev keeps working with SQLite: just keep a local `.env` with
 > `DATABASE_URL="file:./db/custom.db"` (git-ignored) and leave the schema
