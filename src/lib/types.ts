@@ -71,6 +71,19 @@ export type PlatformSettingsView = {
   gsaApiKeySet: boolean
 }
 
+export type EmailTemplateView = {
+  key: string
+  name: string
+  description: string
+  automated: boolean
+  purpose: string
+  subject: string
+  bodyHtml: string
+  isActive: boolean
+  updatedAt: string
+  sampleVars: Record<string, string>
+}
+
 // ─── Superadmin: platform-wide data ──────────────────────────────────
 
 export type AdminOverview = {

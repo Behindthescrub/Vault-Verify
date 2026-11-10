@@ -146,8 +146,17 @@ model EmailLog {
   id        String   @id @default(cuid())
   toEmail   String
   subject   String
-  purpose   String // invite | test
+  purpose   String // invite | reminder | confirmation | results | welcome | test
   status    String // sent | failed | test-mode
   error     String?
   createdAt DateTime @default(now())
+}
+
+// ─── SMTP email templates (managed by superadmin, VaultVerify-branded) ──
+model EmailTemplate {
+  key       String   @id // candidate_invite | candidate_reminder | candidate_confirmation | recruiter_results | recruiter_welcome | platform_test
+  subject   String
+  bodyHtml  String
+  isActive  Boolean  @default(true) // automated emails are skipped when false
+  updatedAt DateTime @updatedAt
 }

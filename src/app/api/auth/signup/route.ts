@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { hashPassword, createSession } from '@/lib/auth'
+import { sendTemplateEmail } from '@/lib/email-templates'
 
 const schema = z.object({
   email: z.string().email(),
@@ -35,6 +36,22 @@ export async function POST(req: NextRequest) {
       },
     })
     await createSession(user.id)
+
+    // Welcome email (automated template — failure never blocks signup).
+    await sendTemplateEmail({
+      key: 'recruiter_welcome',
+      to: user.email,
+      toName: user.name ?? undefined,
+      vars: {
+        name: user.name || user.email,
+        name_suffix: user.name ? ` ${user.name}` : '',
+        company: company || '',
+        company_suffix: company ? ` (${company})` : '',
+        account_email: user.email,
+        link: `${req.nextUrl.origin}/`,
+      },
+    }).catch(() => null)
+
     return NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name, company: user.company, role: user.role },
     })

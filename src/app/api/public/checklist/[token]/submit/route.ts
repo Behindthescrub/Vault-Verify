@@ -5,6 +5,7 @@ import {
   computeAvg, validateRatings, validateAdditional, VALIDITY_DAYS,
   type SnapshotCategory, type Ratings, type LastPerformed,
 } from '@/lib/skills'
+import { sendTemplateEmail } from '@/lib/email-templates'
 
 type Params = { params: Promise<{ token: string }> }
 
@@ -115,6 +116,62 @@ export async function POST(req: NextRequest, { params }: Params) {
         candidateEmail: parsed.data.candidateEmail || c.candidateEmail,
       },
     })
+
+    // Automated notification emails (branded templates, superadmin-managed).
+    // A failed email must never fail the submission itself.
+    const owner = await db.user.findUnique({ where: { id: c.userId } })
+    const candidateName = parsed.data.candidateName || c.candidateName || ''
+    const candidateEmail = parsed.data.candidateEmail || c.candidateEmail
+    const skillCount = items.reduce((n, cat) => n + cat.skills.length, 0)
+    const experienceYears =
+      additional?.experienceYears != null
+        ? `${additional.experienceYears} year${additional.experienceYears === 1 ? '' : 's'}`
+        : '—'
+    const sharedVars = {
+      checklist_title: c.title,
+      skill_count: String(skillCount),
+      candidate_name: candidateName,
+      candidate_name_suffix: candidateName ? ` ${candidateName}` : '',
+      avg_rating: avg != null ? avg.toFixed(1) : '—',
+      valid_until: validUntil.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
+      completed_at: completedAt.toLocaleString(),
+      experience_years: experienceYears,
+    }
+    const notifications: Promise<unknown>[] = []
+    if (candidateEmail) {
+      notifications.push(
+        sendTemplateEmail({
+          key: 'candidate_confirmation',
+          to: candidateEmail,
+          toName: candidateName || undefined,
+          vars: {
+            ...sharedVars,
+            signed_name: parsed.data.printedName ?? parsed.data.signedName,
+            recruiter_name: owner?.name || owner?.email || '',
+            company_suffix: '',
+          },
+        }).catch(() => null),
+      )
+    }
+    if (owner) {
+      const settings = await db.userSettings.findUnique({ where: { userId: owner.id } })
+      const company = (settings?.companyName || owner.company || '').trim()
+      notifications.push(
+        sendTemplateEmail({
+          key: 'recruiter_results',
+          to: owner.email,
+          toName: owner.name ?? undefined,
+          vars: {
+            ...sharedVars,
+            recruiter_name: owner.name || owner.email,
+            recruiter_name_suffix: owner.name ? ` ${owner.name}` : '',
+            company_suffix: company ? ` · ${company}` : '',
+            link: `${req.nextUrl.origin}/`,
+          },
+        }).catch(() => null),
+      )
+    }
+    await Promise.allSettled(notifications)
 
     return NextResponse.json({ ok: true, avgRating: avg, validUntil })
   } catch {

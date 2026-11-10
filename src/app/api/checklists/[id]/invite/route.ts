@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { sendEmail } from '@/lib/email'
+import { sendTemplateEmail } from '@/lib/email-templates'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -31,40 +31,40 @@ export async function POST(req: NextRequest, { params }: Params) {
     const origin = req.nextUrl.origin
     const link = `${origin}/?c=${c.token}`
     const recruiterName = user.name || user.email
-    const personal = parsed.data.message ? `<p style="color:#334155">${escapeHtml(parsed.data.message).replace(/\n/g, '<br>')}</p>` : ''
+    const personal = parsed.data.message
+      ? `<p style="color:#334155">${escapeHtml(parsed.data.message).replace(/\n/g, '<br>')}</p>`
+      : ''
 
-    const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
-        <div style="background:linear-gradient(135deg,#0A2B23,#0E3B32);border-radius:14px 14px 0 0;padding:22px 26px;color:#fff">
-          <h2 style="margin:0;font-size:18px">Skills Checklist Invitation</h2>
-          <p style="margin:6px 0 0;color:#A8CFB8;font-size:13px">from ${escapeHtml(recruiterName)}</p>
-        </div>
-        <div style="border:1px solid #e2e8f0;border-top:0;border-radius:0 0 14px 14px;padding:26px">
-          <p style="font-size:15px">Hello${c.candidateName ? ' ' + escapeHtml(c.candidateName) : ''},</p>
-          ${personal}
-          <p style="font-size:14px;color:#475569;line-height:1.6">
-            Please complete the <strong>${escapeHtml(c.title)}</strong> skills checklist.
-            It takes about 10–15 minutes — you'll rate each skill from 1 (no experience) to 5 (expert).
-          </p>
-          <p style="text-align:center;margin:28px 0">
-            <a href="${link}" style="background:#1F7A44;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;display:inline-block">Open the checklist</a>
-          </p>
-          <p style="font-size:12px;color:#94a3b8;border-top:1px solid #eef1f6;padding-top:14px">
-            If the button doesn't work, paste this link into your browser:<br>${link}
-          </p>
-        </div>
-      </div>`
+    // First send → invitation; re-send while already sent → reminder template.
+    const templateKey = c.status === 'sent' ? 'candidate_reminder' : 'candidate_invite'
+    const userSettings = await db.userSettings.findUnique({ where: { userId: user.id } })
+    const company = (userSettings?.companyName || user.company || '').trim()
 
-    const result = await sendEmail({
+    const result = await sendTemplateEmail({
+      key: templateKey,
       to: parsed.data.toEmail,
       toName: c.candidateName ?? undefined,
-      subject: `Skills Checklist — ${c.title}`,
-      html,
-      purpose: 'invite',
+      force: true,
+      vars: {
+        candidate_name: c.candidateName ?? '',
+        candidate_name_suffix: c.candidateName ? ` ${c.candidateName}` : '',
+        checklist_title: c.title,
+        skill_count: String(
+          JSON.parse(c.itemsJson).reduce(
+            (n: number, cat: { skills: unknown[] }) => n + cat.skills.length, 0,
+          ),
+        ),
+        recruiter_name: recruiterName,
+        company,
+        company_suffix: company ? ` · ${company}` : '',
+        link,
+        personal_message: personal,
+      },
+      rawKeys: ['personal_message'],
     })
 
-    if (!result.ok) {
-      return NextResponse.json({ error: `Email failed: ${result.error}`, status: result.status }, { status: 502 })
+    if (!result || !result.ok) {
+      return NextResponse.json({ error: `Email failed: ${result?.error ?? 'template disabled'}`, status: result?.status }, { status: 502 })
     }
 
     await db.checklist.update({
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         inviteSentAt: new Date(),
       },
     })
-    return NextResponse.json({ ok: true, emailStatus: result.status, link })
+    return NextResponse.json({ ok: true, emailStatus: result.status, link, templateKey })
   } catch {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
