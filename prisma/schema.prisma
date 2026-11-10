@@ -120,8 +120,13 @@ model ChecklistResponse {
   checklistId String   @unique
   checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   ratingsJson String // {"<skill>": 1..4 | "na" | "yes" | "no" | "<text>"}
+  // VaultVerify checklist extras:
+  lastPerformedJson String? // {"<skill>": "3m" | "6m" | "6m+" | "na"} — last time candidate performed each rated skill
+  additionalJson    String? // {"experienceYears": number|null, "answers": {"<questionId>": "yes"|"no"|"<text>"}}
   avgRating   Float? // mean of numeric ratings (N/A excluded)
   signedName  String? // candidate's typed signature on submit
+  printedName String? // candidate's printed (legal) name on the attestation
+  validUntil  DateTime? // completedAt + 30 days (VALIDITY_DAYS)
   completedAt DateTime @default(now())
 }
 

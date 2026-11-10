@@ -19,7 +19,7 @@ export function TopBar({ user, tab, onTab, onLogout }: {
   onLogout: () => void
 }) {
   return (
-    <header className="sticky top-0 z-40"
+    <header className="no-print sticky top-0 z-40"
       style={{ background: 'linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center gap-3">
@@ -67,7 +67,7 @@ export function TopBar({ user, tab, onTab, onLogout }: {
 
 export function Footer() {
   return (
-    <footer className="mt-auto">
+    <footer className="no-print mt-auto">
       <div className="max-w-[1100px] mx-auto px-4 py-6 text-center text-[11.5px] text-[#94a3b8]">
         Recruiter tool · skills checklists &amp; bill-to-pay calculator
       </div>

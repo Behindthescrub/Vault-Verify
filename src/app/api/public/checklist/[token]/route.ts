@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { SCALE_LEGEND, type SnapshotCategory } from '@/lib/skills'
+import {
+  SCALE_LEGEND, CHECKLIST_BRAND, VALIDITY_DAYS, ADDITIONAL_SECTIONS,
+  type SnapshotCategory,
+} from '@/lib/skills'
 
 type Params = { params: Promise<{ token: string }> }
 
@@ -17,9 +20,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
       title: c.title,
       templateLabel: c.templateLabel,
       candidateName: c.candidateName,
+      candidateEmail: c.candidateEmail,
       alreadySubmitted: !!c.response,
       items: JSON.parse(c.itemsJson) as SnapshotCategory[],
       scale: SCALE_LEGEND,
+      brand: CHECKLIST_BRAND,
+      validityDays: VALIDITY_DAYS,
+      additionalSections: ADDITIONAL_SECTIONS,
     },
   })
 }

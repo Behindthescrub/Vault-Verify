@@ -2,12 +2,17 @@
 
 A lightweight toolkit for healthcare staffing recruiters — two tools, nothing else:
 
-1. **Skills Checklists** — the MyZipVault skills model: **315 specialty templates
+1. **Skills Checklists** — the VaultVerify skills model: **315 specialty templates
    with 32,000+ skills** across Nursing / Allied / Provider
    (Profession → Job Title → Specialty → Category → Skill). Recruiters pick a
    template, trim the skills, and email a link — candidates self-rate on the
-   **1–4 proficiency scale** (No Experience / Limited / Experienced / Proficient)
-   with N/A where offered and a typed digital signature, no account needed.
+   **1–4 proficiency scale** (No theory / experience · Limited · Experienced ·
+   Proficient), mark **when they last performed each skill**, answer
+   availability/preference questions, and sign an attestation — no account
+   needed. The result renders (and prints to PDF) as the **VaultVerify Skills
+   Checklist document**: summary at a glance (rating mix + recency mix),
+   category overview, skill table, additional questions and the signed
+   attestation, valid for 30 days.
 2. **Bill-to-Pay Staffing Calculator** — staffing margin, overtime, traveler
    stipend split with GSA per-diem lookup and a minimum-W2 floor. Every run can
    be named, saved, and reloaded.
@@ -77,6 +82,27 @@ Rows are keyed by (Profession, Job Title, Specialty); duplicates are skipped, an
 missing templates are created automatically. The initial 32,837-row dataset
 ships as `prisma/seed-skills.xlsx` and is seeded on first run.
 
+### The VaultVerify checklist document
+
+Every submitted checklist renders as the reference PDF (and prints to PDF via
+**Download PDF** / Ctrl+P) with exactly these parts:
+
+| Section | Contents |
+| --- | --- |
+| Header | Brand, candidate avatar/name/role, email, self-reported experience, completed date, **valid until (+30 days)**, source (requested by recruiter / entered by recruiter) |
+| Summary at a glance | Skills assessed, avg of 4, % recent + **rating mix** (Proficient/Experienced/Limited/No theory) and **last performed mix** (within 3 / 6 months, 6+ months, N/A) with counts & percentages |
+| Category overview | Per-category average, "X of Y Proficient", "X of Y recent" (recent = last performed within 3 months) |
+| Rating scale | 1 No theory / experience · 2 Limited · 3 Experienced · 4 Proficient, and the last-performed legend |
+| Skill table | Skill \| Rating (number + label) \| Last performed, grouped by category |
+| Additional questions | Availability & preferences (float, nights, EHR, travel — yes/no) + experience notes (EHR systems, certifications — text) |
+| Candidate attestation | Confirmation + privacy/terms checkboxes, typed **electronic signature**, printed name, date |
+| Footer | Self-reported, completed once, valid 30 days, generated date |
+
+The candidate form collects everything above; manual entry by the recruiter
+collects ratings plus optional last-performed/experience/notes (no attestation —
+the document labels it recruiter-entered instead). Brand constants live in
+`src/lib/skills.ts` (`CHECKLIST_BRAND`).
+
 ## Deploying (GitHub → Vercel → Supabase → Brevo)
 
 See **[DEPLOY.md](./DEPLOY.md)** for the full step-by-step guide.
@@ -87,12 +113,13 @@ See **[DEPLOY.md](./DEPLOY.md)** for the full step-by-step guide.
 prisma/schema.prisma     # data model (User, SkillTemplate, Skill, Checklist, …)
 prisma/seed-skills.xlsx  # 32,837-row skills dataset (MyZipVault import template)
 scripts/seed.ts          # superadmin + skills seed
-src/lib/skills.ts        # 1–4 scale, xlsx import/export, checklist snapshots
+src/lib/skills.ts        # VaultVerify scale, last-performed, additional questions, xlsx import/export
 src/lib/                 # auth, email (Brevo), GSA, calculator math
 src/app/api/             # REST API routes
 src/app/page.tsx         # the recruiter app (single route, view-switched)
 src/app/superadmin/      # /superadmin — console login + admin shell
 src/components/          # calculator, checklists, admin, auth UI
+src/components/checklist-document.tsx # the VaultVerify checklist document (screen + print)
 src/components/admin/    # superadmin panels (overview, skills, data, users, email, keys)
 ```
 

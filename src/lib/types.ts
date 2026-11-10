@@ -43,8 +43,12 @@ export type ChecklistDetail = {
   token: string
   items: { category: string; skills: { name: string; questionType: string; hasNaOption: boolean }[] }[]
   ratings: Record<string, number | 'na' | 'yes' | 'no' | string> | null
+  lastPerformed: Record<string, '3m' | '6m' | '6m+' | 'na'> | null
+  additional: { experienceYears: number | null; answers: Record<string, string> } | null
   avgRating: number | null
   signedName: string | null
+  printedName: string | null
+  validUntil: string | null
   completedAt: string | null
   inviteSentAt: string | null
   createdAt: string

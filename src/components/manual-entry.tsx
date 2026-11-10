@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label'
 import { api } from '@/lib/client-api'
 import type { ChecklistDetail } from '@/lib/types'
 import { RatingPills, ScaleLegend } from '@/components/rating'
-import type { RatingValue } from '@/lib/skills'
+import {
+  ADDITIONAL_SECTIONS, LAST_PERFORMED_OPTIONS,
+  type RatingValue, type LastPerformedValue,
+} from '@/lib/skills'
 import { ArrowLeft, Check, Loader2, UserPen } from 'lucide-react'
 
 type Props = {
@@ -18,11 +21,16 @@ type Props = {
 
 // Recruiter-side manual entry: the recruiter records the candidate's
 // self-reported ratings (from a phone call, text, paper copy, etc.).
+// Last performed, experience and additional questions are optional extras
+// so the checklist document is as complete as the recruiter knows.
 export function ManualEntry({ id, onBack, onSaved }: Props) {
   const [data, setData] = useState<ChecklistDetail | null>(null)
   const [ratings, setRatings] = useState<Record<string, RatingValue>>({})
+  const [lastPerformed, setLastPerformed] = useState<Record<string, LastPerformedValue>>({})
+  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [candidateName, setCandidateName] = useState('')
   const [candidateEmail, setCandidateEmail] = useState('')
+  const [experienceYears, setExperienceYears] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,6 +39,9 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
       .then((d) => {
         setData(d.checklist)
         setRatings((d.checklist.ratings as Record<string, RatingValue>) ?? {})
+        setLastPerformed((d.checklist.lastPerformed as Record<string, LastPerformedValue>) ?? {})
+        setAnswers(d.checklist.additional?.answers ?? {})
+        setExperienceYears(d.checklist.additional?.experienceYears != null ? String(d.checklist.additional.experienceYears) : '')
         setCandidateName(d.checklist.candidateName ?? '')
         setCandidateEmail(d.checklist.candidateEmail ?? '')
       })
@@ -44,14 +55,22 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
   const answeredCount = allSkills.filter((s) => ratings[s] !== undefined && ratings[s] !== '').length
   const progress = allSkills.length > 0 ? Math.round((answeredCount / allSkills.length) * 100) : 0
 
+  function setRating(skill: string, v: RatingValue) {
+    setRatings((r) => ({ ...r, [skill]: v }))
+    if (v === 'na') setLastPerformed((lp) => ({ ...lp, [skill]: 'na' }))
+  }
+
   async function save() {
     setBusy(true)
     setError('')
     try {
+      const years = experienceYears.trim() === '' ? null : Math.round(Number(experienceYears) * 10) / 10
       await api(`/api/checklists/${id}/responses`, {
         method: 'POST',
         body: JSON.stringify({
           ratings,
+          lastPerformed,
+          additional: { experienceYears: Number.isFinite(years) ? years : null, answers },
           candidateName: candidateName.trim() || undefined,
           candidateEmail: candidateEmail.trim() || undefined,
         }),
@@ -99,7 +118,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
           <div className="h-2 rounded-full bg-[#e2e7f0] overflow-hidden">
             <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#818cf8,#4f46e5)' }} />
           </div>
-          <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate name</Label>
               <Input value={candidateName} onChange={(e) => setCandidateName(e.target.value)} placeholder="Jane Doe" className="h-11 mt-1.5" />
@@ -108,12 +127,23 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate email (optional)</Label>
               <Input type="email" value={candidateEmail} onChange={(e) => setCandidateEmail(e.target.value)} placeholder="jane@email.com" className="h-11 mt-1.5" />
             </div>
+            <div>
+              <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Experience (years, optional)</Label>
+              <Input type="number" min={0} max={60} step={0.5} value={experienceYears}
+                onChange={(e) => setExperienceYears(e.target.value)} placeholder="e.g. 3" className="h-11 mt-1.5" />
+            </div>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="px-6 sm:px-8 py-4 border-b border-[#eef1f6]">
+        <div className="px-6 sm:px-8 py-4 border-b border-[#eef1f6] space-y-2">
           <ScaleLegend compact />
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1">
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.6px] text-[#334155]">Last performed (optional)</span>
+            {LAST_PERFORMED_OPTIONS.map((o) => (
+              <span key={o.value} className="text-[12px] text-[#475569] font-medium">{o.label}</span>
+            ))}
+          </div>
         </div>
 
         {/* Skills */}
@@ -121,17 +151,93 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
           {data.items.map((c) => (
             <div key={c.category}>
               <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2.5">{c.category}</div>
-              <div className="grid gap-1.5">
-                {c.skills.map((s) => (
-                  <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap py-2 border-b border-[#f1f5f9] last:border-b-0">
-                    <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s.name}</span>
-                    <RatingPills
-                      value={ratings[s.name] ?? null}
-                      onChange={(v) => setRatings((r) => ({ ...r, [s.name]: v }))}
-                      hasNa={s.hasNaOption}
-                      questionType={s.questionType}
-                      size="sm"
-                    />
+              <div className="grid gap-1">
+                {c.skills.map((s) => {
+                  const isRating = s.questionType === 'rating_1_4'
+                  return (
+                    <div key={s.name} className="py-2 border-b border-[#f1f5f9] last:border-b-0">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className="text-[13.5px] text-[#0f172a] font-medium min-w-0 flex-1">{s.name}</span>
+                        <RatingPills
+                          value={ratings[s.name] ?? null}
+                          onChange={(v) => setRating(s.name, v)}
+                          hasNa={s.hasNaOption}
+                          questionType={s.questionType}
+                          size="sm"
+                        />
+                      </div>
+                      {isRating && (
+                        <div className="mt-1.5 flex items-center gap-2 flex-wrap pl-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">Last performed</span>
+                          <div className="inline-flex gap-1" role="radiogroup" aria-label={`Last performed: ${s.name}`}>
+                            {LAST_PERFORMED_OPTIONS.map((o) => {
+                              const selected = lastPerformed[s.name] === o.value
+                              return (
+                                <button key={o.value} type="button" role="radio" aria-checked={selected}
+                                  disabled={ratings[s.name] === 'na' && o.value !== 'na'}
+                                  onClick={() => setLastPerformed((lp) => ({ ...lp, [s.name]: o.value }))}
+                                  className={`h-6.5 px-2 rounded-lg border text-[10.5px] font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                                    selected ? 'bg-[#eef2ff] border-[#a5b4fc] text-[#4338ca]' : 'bg-white border-[#dfe5ee] text-[#64748b] hover:border-[#b8c2d4]'
+                                  } ${ratings[s.name] === 'na' && o.value !== 'na' ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  {o.value === 'na' ? 'N/A' : o.label.replace('Within ', '').replace(' ago', '')}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Additional questions (optional in manual entry) */}
+        <div className="px-6 sm:px-8 py-5 border-t border-[#eef1f6] space-y-4">
+          <div>
+            <div className="text-[14px] font-extrabold tracking-tight text-[#0f172a]">Additional questions <span className="text-[11.5px] font-semibold text-[#94a3b8]">(optional)</span></div>
+            <p className="text-[12px] text-[#94a3b8] mt-0.5">Fill what the candidate told you — blanks show as “—” on the document.</p>
+          </div>
+          {ADDITIONAL_SECTIONS.map((sec) => (
+            <div key={sec.section} className="rounded-2xl border border-[#eef1f6] px-4 py-3.5">
+              <div className="text-[11px] font-extrabold uppercase tracking-[0.7px] text-[#334155] mb-2.5">{sec.section}</div>
+              <div className="space-y-3">
+                {sec.questions.map((q) => (
+                  <div key={q.id}>
+                    {q.type === 'yes_no' ? (
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className="text-[12.5px] text-[#0f172a] font-medium min-w-0 flex-1">{q.text}</span>
+                        <div className="inline-flex gap-1" role="radiogroup" aria-label={q.text}>
+                          {(['yes', 'no'] as const).map((v) => {
+                            const selected = answers[q.id] === v
+                            return (
+                              <button key={v} type="button" role="radio" aria-checked={selected}
+                                onClick={() => setAnswers((a) => ({ ...a, [q.id]: selected && a[q.id] === v ? '' : v }))}
+                                className={`h-7 px-3 rounded-lg border text-[11.5px] font-bold cursor-pointer transition-colors ${
+                                  selected
+                                    ? v === 'yes' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+                                    : 'bg-white border-[#d8dee9] text-[#64748b] hover:border-[#b8c2d4]'
+                                }`}>
+                                {v === 'yes' ? 'Yes' : 'No'}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <Label className="text-[11.5px] text-[#334155] font-semibold">{q.text}</Label>
+                        <Input
+                          value={answers[q.id] ?? ''}
+                          onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                          placeholder="Type the candidate's answer…"
+                          className="h-9.5 mt-1 text-[12.5px]"
+                          maxLength={2000}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

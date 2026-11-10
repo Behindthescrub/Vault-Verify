@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { api } from '@/lib/client-api'
 import type { AdminChecklistRow, AdminChecklistDetail } from '@/lib/types'
-import { RatingBadge, ratingColor } from '@/components/rating'
-import type { RatingValue } from '@/lib/skills'
+import { ChecklistDocument } from '@/components/checklist-document'
+import { ratingColor } from '@/components/rating'
 import { ClipboardList, Download, Loader2, Search, Users2 } from 'lucide-react'
 
 const STATUS_TABS: { key: string; label: string }[] = [
@@ -70,19 +70,6 @@ export function ChecklistsPanel({ version }: Props) {
         .some((v) => v && v.toLowerCase().includes(needle)),
     )
   }, [rows, q])
-
-  // Per-category averages for the detail dialog (numeric only; N/A etc. excluded)
-  const catStats = useMemo(() => {
-    if (!detail) return []
-    const ratings = (detail.ratings ?? {}) as Record<string, RatingValue>
-    return detail.items.map((c) => {
-      const rated = c.skills.filter((s) => s.name in ratings)
-      const nums = rated.map((s) => ratings[s.name]).filter((v): v is number => typeof v === 'number')
-      const avg = nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null
-      const naCount = rated.filter((s) => ratings[s.name] === 'na').length
-      return { category: c.category, total: c.skills.length, rated: rated.length, avg, naCount }
-    })
-  }, [detail])
 
   return (
     <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] overflow-hidden">
@@ -178,7 +165,7 @@ export function ChecklistsPanel({ version }: Props) {
 
       {/* Detail dialog */}
       <Dialog open={!!openId} onOpenChange={(o) => { if (!o) setOpenId(null) }}>
-        <DialogContent aria-describedby={undefined} className="max-w-[720px] max-h-[85vh] overflow-y-auto p-0 gap-0 rounded-3xl">
+        <DialogContent aria-describedby={undefined} className="max-w-[900px] max-h-[85vh] overflow-y-auto p-0 gap-0 rounded-3xl">
           {detailLoading || !detail ? (
             <>
               <DialogHeader className="px-6 pt-6">
@@ -221,43 +208,14 @@ export function ChecklistsPanel({ version }: Props) {
                 </div>
               </DialogHeader>
 
-              <div className="px-6 py-5 space-y-5">
+              <div className="px-4 sm:px-5 py-5">
                 {!detail.ratings ? (
                   <div className="text-center py-8">
                     <div className="text-[14.5px] font-bold text-[#334155]">No results yet</div>
                     <p className="text-[12.5px] text-[#94a3b8] mt-1">This checklist hasn&apos;t been filled in.</p>
                   </div>
                 ) : (
-                  <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                      {catStats.map((c) => (
-                        <div key={c.category} className="rounded-2xl border border-[#eaeef5] bg-gradient-to-b from-[#fbfcfe] to-[#f5f7fb] px-3.5 py-2.5">
-                          <div className="text-[9.5px] font-bold uppercase tracking-[0.6px] text-[#64748b] leading-snug">{c.category}</div>
-                          <div className={`text-[17px] font-extrabold tabular-nums mt-0.5 ${c.avg != null ? ratingColor(c.avg) : 'text-[#94a3b8]'}`}>
-                            {c.avg != null ? c.avg.toFixed(1) : '—'}
-                            <span className="text-[10.5px] font-semibold text-[#94a3b8] ml-1">/ 4</span>
-                          </div>
-                          <div className="text-[10px] text-[#94a3b8] mt-0.5">{c.rated} of {c.total} skills{c.naCount > 0 ? ` · ${c.naCount} N/A` : ''}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="rounded-2xl border border-[#eef1f6] divide-y divide-[#eef1f6] overflow-hidden">
-                      {detail.items.map((c) => (
-                        <div key={c.category} className="p-4">
-                          <div className="font-bold text-[12px] text-[#334155] uppercase tracking-wide mb-2.5">{c.category}</div>
-                          <div className="grid gap-1.5">
-                            {c.skills.map((s) => (
-                              <div key={s.name} className="flex items-center justify-between gap-3 flex-wrap">
-                                <span className="text-[13px] text-[#0f172a] font-medium">{s.name}</span>
-                                <RatingBadge value={((detail.ratings ?? {}) as Record<string, RatingValue>)[s.name] ?? null} questionType={s.questionType} />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                  <ChecklistDocument data={detail} className="shadow-[0_6px_24px_rgba(15,23,42,0.06)]" />
                 )}
               </div>
             </>

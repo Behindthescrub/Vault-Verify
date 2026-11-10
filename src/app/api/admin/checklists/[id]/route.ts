@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser, isSuperadmin } from '@/lib/auth'
-import { SCALE_MAX, type SnapshotCategory } from '@/lib/skills'
+import { serializeChecklistDetail } from '@/lib/skills'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -19,23 +19,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (!c) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({
     checklist: {
-      id: c.id,
-      title: c.title,
-      templateLabel: c.templateLabel,
-      candidateName: c.candidateName,
-      candidateEmail: c.candidateEmail,
-      status: c.status,
-      submittedVia: c.submittedVia,
-      items: JSON.parse(c.itemsJson) as SnapshotCategory[],
-      ratings: c.response ? JSON.parse(c.response.ratingsJson) : null,
-      avgRating: c.response?.avgRating ?? null,
-      signedName: c.response?.signedName ?? null,
-      completedAt: c.response?.completedAt ?? null,
-      inviteSentAt: c.inviteSentAt,
-      createdAt: c.createdAt,
+      ...serializeChecklistDetail(c),
       ownerEmail: c.user.email,
       ownerCompany: c.user.company,
-      scaleMax: SCALE_MAX,
     },
   })
 }

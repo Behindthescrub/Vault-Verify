@@ -1,7 +1,7 @@
 'use client'
 
-// Shared rating UI for skills checklists — the MyZipVault proficiency scale:
-// 1 = No Experience · 2 = Limited · 3 = Experienced · 4 = Proficient
+// Shared rating UI for skills checklists — the VaultVerify proficiency scale:
+// 1 = No theory / experience · 2 = Limited · 3 = Experienced · 4 = Proficient
 // plus N/A where the skill offers it, and yes/no + text question types.
 
 import { Input } from '@/components/ui/input'
@@ -155,7 +155,7 @@ export function ratingColor(value: number): string {
 // Big 1–4 scale legend block (candidate-facing).
 export function ScaleLegend({ compact = false }: { compact?: boolean }) {
   const levels = [
-    { value: 1, label: 'No Experience', desc: 'Have not performed this skill', cls: 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]' },
+    { value: 1, label: 'No theory / experience', desc: 'Have not performed this skill', cls: 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]' },
     { value: 2, label: 'Limited', desc: 'Performed only with direct oversight', cls: 'bg-[#fef3c7] border-[#fcd34d] text-[#b45309]' },
     { value: 3, label: 'Experienced', desc: 'Independent with occasional guidance', cls: 'bg-[#dbeafe] border-[#93c5fd] text-[#1d4ed8]' },
     { value: 4, label: 'Proficient', desc: 'Fully independent, complex cases included', cls: 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' },
