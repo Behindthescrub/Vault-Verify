@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { verifyPassword, createSession, hashPassword } from '@/lib/auth'
-import { readPlatformBackup } from '@/lib/platform-backup'
 
 const DEFAULT_SUPERADMIN_EMAIL = 'admin@recruitertool.local'
 const DEFAULT_SUPERADMIN_PASSWORD = 'Superadmin@123' // change in Keys & access after first login
@@ -42,15 +41,18 @@ export async function POST(req: NextRequest) {
       candidates = superadmins.filter((u) => u.email.toLowerCase().split('@')[0] === input)
     }
 
-    // Dev-sandbox self-heal: a DB re-provision can leave the user table empty
-    // (this actually happened — every login 401'd). If the platform has been
-    // configured before (backup file exists) but NO user of any kind remains,
-    // re-create the default superadmin so the console isn't locked out.
-    // Production DBs are seeded via scripts/seed.ts with env credentials and
-    // have no backup file, so this never fires there.
+    // Dev-sandbox self-heal: the sandbox can re-provision db/custom.db empty
+    // (this happened twice: 2026-11-10 16:54 and 17:14 UTC — the second wipe
+    // also deleted db/platform-backup.json, so an earlier backup-gated heal
+    // never fired and every login 401'd). If NO superadmin exists at all, the
+    // console is permanently locked out — nobody can authenticate here. So:
+    // whenever the platform has zero superadmin accounts, recreate the default
+    // one so the console is always recoverable. Production DBs are seeded via
+    // scripts/seed.ts (a superadmin always exists), and if the seed is re-run
+    // afterwards it just reports "already exists" — no side effects.
     if (candidates.length === 0) {
-      const [userCount, backup] = [await db.user.count(), readPlatformBackup()]
-      if (userCount === 0 && backup) {
+      const superadminCount = await db.user.count({ where: { role: 'superadmin' } })
+      if (superadminCount === 0) {
         const admin = await db.user.create({
           data: {
             email: DEFAULT_SUPERADMIN_EMAIL,
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
             settings: { create: {} },
           },
         })
-        console.warn(`[admin-login] DB was re-provisioned empty — recreated default superadmin ${DEFAULT_SUPERADMIN_EMAIL}`)
+        console.warn(`[admin-login] no superadmin exists (DB re-provisioned?) — recreated default superadmin ${DEFAULT_SUPERADMIN_EMAIL}`)
         candidates = input === DEFAULT_SUPERADMIN_EMAIL || (!isEmail && input === DEFAULT_SUPERADMIN_EMAIL.split('@')[0])
           ? [admin]
           : []
