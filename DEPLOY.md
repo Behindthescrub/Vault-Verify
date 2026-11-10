@@ -75,6 +75,13 @@ the password in **Keys & access → Superadmin credentials**. The recruiter app 
 > Local dev keeps working with SQLite: just keep a local `.env` with
 > `DATABASE_URL="file:./db/custom.db"` (git-ignored) and leave the schema
 > provider switched only when you deploy — or keep a second clone for deploys.
+>
+> If the dev database is ever re-provisioned empty, the app self-heals:
+> the superadmin console login (`admin` / `Superadmin@123` unless changed)
+> recreates the default admin, and saved platform settings — including the
+> Brevo/GSA keys — are restored automatically from `db/platform-backup.json`
+> (git-ignored, written every time you save settings). Only the skills
+> library needs a re-run of `bun scripts/seed.ts`.
 
 ## 4. Brevo (transactional email)
 
@@ -100,18 +107,27 @@ tab's **Connected Brevo account** strip shows the live account behind your
 key (e.g. `sam.p@medstalent.com — free · 300 emails/day`), so there's no
 guessing which dashboard to watch:
 
-- **Free plan = a 300/day quota that resets every 24h — there is no prepaid
-  credit balance.** To see usage, log into Brevo with *that exact account*
-  and open Transactional → Real-time. (An SMTP key from a different Brevo
-  login will be rejected — keys only work on the account that created them.)
-- **Every accepted send is logged with Brevo's `messageId`** in the send log
-  — that ID is proof Brevo took the email.
-- If messages are accepted but never appear in the inbox, they are almost
-  certainly in **spam**: a sender on a free-mail domain (gmail.com, …)
-  cannot have Brevo SPF/DKIM records. Verify a sender on a domain you own
-  (e.g. `no-reply@yourdomain.com`) with Brevo's DNS records, then switch the
-  sender in the Email tab — the strip flags this automatically with a
-  deliverability warning.
+1. **Check Brevo → Transactional → Events first.** If you see the error
+   *"Email not sent: Your sending platform is currently disabled"* — that
+   is the whole story. Brevo's API still **accepts** every send (HTTP 201 +
+   a `messageId` in the app's send log) but **silently drops** each email,
+   so nothing is delivered and no quota is used. Per Brevo's docs the
+   transactional platform needs a **separate activation**: create a
+   support ticket *from that exact account*
+   ([help.brevo.com → submit a request](https://help.brevo.com/hc/en-us/requests/new))
+   asking them to activate transactional sending. Once enabled, sends
+   start delivering and consuming the quota.
+2. **Free plan = a 300/day quota that resets every 24h — there is no prepaid
+   credit balance.** To see usage, log into Brevo with *that exact account*
+   and open Transactional → Real-time. (An SMTP key from a different Brevo
+   login will be rejected — keys only work on the account that created them.)
+3. **A `messageId` in the send log = Brevo accepted the email — not a
+   delivery guarantee.** Delivery truth lives only in Brevo's Events view.
+4. Once sending works: a sender on a free-mail domain (gmail.com, …)
+   cannot have Brevo SPF/DKIM records and often lands in **spam**. Verify
+   a sender on a domain you own (e.g. `no-reply@medstalent.com`) with
+   Brevo's DNS records, then switch the sender in the Email tab — the
+   strip flags this automatically with a deliverability warning.
 
 ### GSA Per Diem key (optional, for the calculator's live fetch)
 

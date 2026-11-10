@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { getCurrentUser, isSuperadmin, hashPassword, verifyPassword } from '@/lib/auth'
+import { writePlatformBackup } from '@/lib/platform-backup'
 
 async function requireSuperadmin() {
   const user = await getCurrentUser()
@@ -85,6 +86,16 @@ export async function PUT(req: NextRequest) {
     }
 
     const s = await db.platformSetting.findUnique({ where: { id: 'main' } })
+    // Snapshot settings (incl. saved keys) to the git-ignored backup file so
+    // they survive a sandbox DB re-provision (restored lazily in
+    // getPlatformSettings). No-op on read-only hosts.
+    writePlatformBackup({
+      brevoApiKey: s?.brevoApiKey ?? null,
+      brevoSenderEmail: s?.brevoSenderEmail ?? 'myzipvault@gmail.com',
+      brevoSenderName: s?.brevoSenderName ?? 'VaultVerify',
+      emailTestMode: s?.emailTestMode ?? true,
+      gsaApiKey: s?.gsaApiKey ?? null,
+    })
     return NextResponse.json({
       ok: true,
       settings: {

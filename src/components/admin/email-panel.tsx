@@ -15,7 +15,7 @@ import { api } from '@/lib/client-api'
 import { renderTemplate } from '@/lib/template-render'
 import type { EmailTemplateView, PlatformSettingsView } from '@/lib/types'
 import {
-  AlertTriangle, BadgeCheck, Eye, History, Loader2, Mail, MailOpen, Mails, Monitor, RotateCcw, RefreshCw, Save, Send, Smartphone,
+  AlertTriangle, BadgeCheck, Eye, History, Info, Loader2, Mail, MailOpen, Mails, Monitor, RotateCcw, RefreshCw, Save, Send, Smartphone,
 } from 'lucide-react'
 
 type EmailLog = {
@@ -138,7 +138,7 @@ export function EmailPanel() {
         ok: true,
         text: data.emailStatus === 'test-mode'
           ? `Logged in test mode — no real email sent to ${data.sentTo}. Add a Brevo API key and disable test mode to send for real.`
-          : `Sent to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it hasn't arrived in a few minutes, check the spam folder — see the deliverability note above.`,
+          : `Sent to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no credits move: check spam, then Brevo → Transactional → Events — "Your sending platform is currently disabled" means the account needs activation by Brevo support (see the note above).`,
       })
       refresh()
     } catch (e) {
@@ -232,7 +232,7 @@ export function EmailPanel() {
         ok: true,
         text: data.emailStatus === 'test-mode'
           ? `Logged in test mode — no real email sent to ${data.sentTo}.`
-          : `Sent this template to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. Not in the inbox? Check the spam folder.`,
+          : `Sent this template to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no credits move, see the accepted ≠ delivered note above.`,
       })
       refresh()
     } catch (e) {
@@ -411,9 +411,13 @@ export function EmailPanel() {
       {/* ─── Send log ──────────────────────────────────────────────── */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
         <div className="px-6 sm:px-7 py-5">
-          <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
+          <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-1.5 flex items-center gap-2">
             <History className="w-4 h-4 text-[#1F7A44]" /> Send log (last 50)
           </h2>
+          <p className="text-[11px] text-[#94a3b8] mb-3 leading-relaxed">
+            <strong>sent</strong> = accepted by Brevo’s API (their messageId shown) — not a delivery guarantee. Actual delivery shows in{' '}
+            <a href="https://app.brevo.com/transactional" target="_blank" rel="noreferrer" className="font-bold underline">Brevo → Transactional → Events</a>.
+          </p>
           <div className="rounded-2xl border border-[#eef1f6] max-h-72 overflow-y-auto divide-y divide-[#eef1f6]">
             {logs.length === 0 && <div className="px-4 py-6 text-center text-[13px] text-[#94a3b8]">No emails logged yet.</div>}
             {logs.map((l) => (
@@ -625,6 +629,15 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
           To see usage, log into Brevo with <strong>{a.email}</strong> (not another Brevo login) and check <strong>Transactional → Real-time</strong>.
         </div>
       )}
+      <div className="px-4 py-3 flex items-start gap-2.5">
+        <Info className="w-4 h-4 text-[#64748b] shrink-0 mt-0.5" />
+        <span className="text-[12px] text-[#64748b] leading-relaxed">
+          <strong className="text-[#334155]">Accepted ≠ delivered.</strong> A <strong>sent</strong> row (with a Brevo id) means Brevo’s API <em>accepted</em> the email — final delivery shows in{' '}
+          <a href="https://app.brevo.com/transactional" target="_blank" rel="noreferrer" className="font-bold underline">Brevo → Transactional → Events</a>.
+          If nothing arrives <strong>and no credits are used</strong>, look for <strong>“Your sending platform is currently disabled”</strong> there — that account’s transactional platform needs an{' '}
+          <a href="https://help.brevo.com/hc/en-us/requests/new" target="_blank" rel="noreferrer" className="font-bold underline">activation ticket from Brevo support</a>; every send is silently dropped until Brevo enables it.
+        </span>
+      </div>
       <div className="px-4 py-3 flex items-center gap-2.5 flex-wrap">
         {status.senderVerified ? (
           <>
@@ -647,7 +660,7 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
         <div className="px-4 py-3 flex items-start gap-2.5 bg-[#FFF9E6]">
           <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
           <span className="text-[12px] text-[#92400E] leading-relaxed">
-            <strong>Deliverability warning:</strong> {status.senderDomain} is a free-mail domain. Brevo cannot publish SPF/DKIM records for it, so inbox providers often sort these emails into <strong>spam</strong> — that is most likely where the earlier test emails ended up.
+            <strong>Deliverability warning:</strong> {status.senderDomain} is a free-mail domain. Brevo cannot publish SPF/DKIM records for it, so inbox providers often sort these emails into <strong>spam</strong>.
             For reliable delivery, verify a sender on a domain you own{suggestDomain ? <> (e.g. <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">no-reply@{suggestDomain}</code>)</> : null} in Brevo with its SPF/DKIM records, then switch the sender above. Until then, check the spam folder when testing.
           </span>
         </div>

@@ -1,11 +1,27 @@
 // Brevo transactional email — API key is managed in the superadmin panel
 // (PlatformSetting), not env vars. Test mode logs sends without delivering.
 import { db } from '@/lib/db'
+import { readPlatformBackup } from '@/lib/platform-backup'
 
 export async function getPlatformSettings() {
   let s = await db.platformSetting.findUnique({ where: { id: 'main' } })
   if (!s) {
-    s = await db.platformSetting.create({ data: { id: 'main' } })
+    // The dev sandbox can re-provision the SQLite file empty; restore the
+    // previously saved keys/sender from the git-ignored backup file so the
+    // platform keeps working without re-entering secrets.
+    const backup = readPlatformBackup()
+    s = await db.platformSetting.create({
+      data: backup
+        ? {
+            id: 'main',
+            brevoApiKey: backup.brevoApiKey ?? undefined,
+            brevoSenderEmail: backup.brevoSenderEmail ?? undefined,
+            brevoSenderName: backup.brevoSenderName ?? undefined,
+            emailTestMode: backup.emailTestMode ?? undefined,
+            gsaApiKey: backup.gsaApiKey ?? undefined,
+          }
+        : { id: 'main' },
+    })
   }
   return s
 }

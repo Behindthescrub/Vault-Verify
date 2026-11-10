@@ -96,10 +96,13 @@ $AB screenshot /tmp/render/email-tab-status.png || true
 $AB eval "(() => { const t = document.body.textContent; const checks = [
   ['account strip', t.includes('Connected Brevo account') && t.includes('sam.p@medstalent.com')],
   ['free plan quota note', t.includes('300/day quota')],
+  ['accepted-ne-delivered note', t.includes('Accepted') && t.includes('delivered') && t.includes('sending platform is currently disabled')],
+  ['activation ticket link', !!document.querySelector('a[href*=\"help.brevo.com/hc/en-us/requests/new\"]')],
   ['sender verified note', t.includes('is verified') || t.includes('verified & active')],
   ['deliverability warning', t.includes('Deliverability warning') && t.includes('spam')],
   ['own-domain suggestion', t.includes('no-reply@medstalent.com')],
   ['messageId chip in log', !!document.querySelector('code[title*=\"smtp-relay\"]')],
+  ['send log footnote', t.includes('not a delivery guarantee')],
 ]; return checks.map(([n,v]) => (v ? 'PASS' : 'FAIL') + ' ' + n).join('\\n'); })()" || true
 
 $AB close || true
