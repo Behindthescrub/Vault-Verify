@@ -64,21 +64,31 @@ async function seedSkills() {
     templates.get(key)!.push(r)
   }
 
+  // Bulk path: one createMany for ALL templates (ids pre-generated so skills
+  // can reference them), then chunked createMany for skills. Sequential
+  // per-template creates are far too slow over a hosted connection (~0.6s
+  // per query × 315 templates ≈ 5+ minutes and risks partial imports).
+  const { randomUUID } = await import('crypto')
+  const templateRows: {
+    id: string; profession: string; jobTitle: string; specialty: string
+    name: string; sortOrder: number
+  }[] = []
+  const skillRows: {
+    id: string; templateId: string; skillName: string; category: string
+    questionType: string; sortOrder: number; categorySort: number; hasNaOption: boolean
+  }[] = []
   let tIdx = 0
   for (const [key, trows] of templates) {
     const [profession, jobTitle, specialty] = key.split('\u0000')
-    const template = await db.skillTemplate.create({
-      data: {
-        profession,
-        jobTitle,
-        specialty,
-        name: `${jobTitle} - ${specialty} Skill Checklist`,
-        sortOrder: tIdx++,
-      },
+    const templateId = randomUUID().replace(/-/g, '')
+    templateRows.push({
+      id: templateId,
+      profession, jobTitle, specialty,
+      name: `${jobTitle} - ${specialty} Skill Checklist`,
+      sortOrder: tIdx++,
     })
     // Deduplicate skills within a template (case-insensitive)
     const seen = new Set<string>()
-    const skills: { skillName: string; category: string; questionType: string; sortOrder: number; categorySort: number; hasNaOption: boolean }[] = []
     const order = new Map<string, number>() // per-category sort order
     const catOrder = new Map<string, number>() // natural (xlsx) category order
     for (const r of trows) {
@@ -88,7 +98,9 @@ async function seedSkills() {
       if (!catOrder.has(r.category)) catOrder.set(r.category, catOrder.size)
       const so = (order.get(r.category) ?? -1) + 1
       order.set(r.category, so)
-      skills.push({
+      skillRows.push({
+        id: randomUUID().replace(/-/g, ''),
+        templateId,
         skillName: r.skillName,
         category: r.category,
         questionType: r.questionType,
@@ -97,14 +109,13 @@ async function seedSkills() {
         hasNaOption: r.hasNaOption,
       })
     }
-    // Chunked createMany (SQLite variable limits)
-    for (let i = 0; i < skills.length; i += 500) {
-      await db.skill.createMany({
-        data: skills.slice(i, i + 500).map((s) => ({ ...s, templateId: template.id })),
-      })
-    }
   }
-  console.log(`✅ Skills data imported: ${templates.size} templates, ${rows.length} rows`)
+
+  await db.skillTemplate.createMany({ data: templateRows })
+  for (let i = 0; i < skillRows.length; i += 1500) {
+    await db.skill.createMany({ data: skillRows.slice(i, i + 1500) })
+  }
+  console.log(`✅ Skills data imported: ${templates.size} templates, ${skillRows.length} skills`)
 }
 
 async function main() {
