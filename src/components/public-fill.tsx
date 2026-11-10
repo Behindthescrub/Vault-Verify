@@ -11,7 +11,7 @@ import {
   LAST_PERFORMED_OPTIONS, SCALE_LEGEND,
   type RatingValue, type SnapshotCategory, type LastPerformedValue, type AdditionalSection,
 } from '@/lib/skills'
-import { CheckCircle2, ClipboardCheck, Loader2, PartyPopper, PenLine, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, ClipboardCheck, Loader2, PartyPopper, PenLine } from 'lucide-react'
 
 type PublicData = {
   checklist: {
@@ -38,7 +38,7 @@ function LastPerformedPicker({ value, onChange, disabled = false }: LastPerforme
       {LAST_PERFORMED_OPTIONS.map((o) => {
         const selected = value === o.value
         const tone = selected && o.value !== 'na'
-          ? 'bg-[#eef2ff] border-[#a5b4fc] text-[#4338ca]'
+          ? 'bg-[#E9F5EC] border-[#9DDBB6] text-[#1E6B3C]'
           : selected ? 'bg-[#f1f5f9] border-[#cbd5e1] text-[#475569]' : ''
         return (
           <button key={o.value} type="button" role="radio" aria-checked={selected} disabled={disabled}
@@ -146,7 +146,7 @@ export function PublicFill({ token }: { token: string }) {
     return (
       <Shell>
         <div className="text-center py-14 px-6">
-          <ClipboardCheck className="w-10 h-10 mx-auto text-[#c7d2fe] mb-3" />
+          <ClipboardCheck className="w-10 h-10 mx-auto text-[#CBE8D6] mb-3" />
           <div className="font-bold text-[15px] text-[#334155]">Checklist unavailable</div>
           <p className="text-[13px] text-[#94a3b8] mt-1.5 max-w-sm mx-auto">{error}</p>
         </div>
@@ -162,7 +162,7 @@ export function PublicFill({ token }: { token: string }) {
       <Shell>
         <div className="px-6 sm:px-10 py-14 text-center">
           <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-white"
-            style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
+            style={{ background: 'linear-gradient(135deg,#34A853,#2E9E5B)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
             <PartyPopper className="w-7 h-7" />
           </div>
           <h1 className="text-[24px] font-extrabold tracking-tight text-[#0f172a] mt-4">Thank you{name ? `, ${name}` : ''}!</h1>
@@ -170,7 +170,7 @@ export function PublicFill({ token }: { token: string }) {
             Your <strong>{data.title}</strong> responses have been submitted to the recruiter.
           </p>
           <div className="mt-5 flex flex-col items-center gap-2">
-            <div className="inline-flex items-center gap-2 bg-[#ecfdf5] border border-[#a7f3d0] text-[#059669] rounded-full px-4 py-2 text-[13px] font-bold">
+            <div className="inline-flex items-center gap-2 bg-[#E9F5EC] border border-[#a7f3d0] text-[#2E9E5B] rounded-full px-4 py-2 text-[13px] font-bold">
               <CheckCircle2 className="w-4 h-4" /> Submitted successfully
             </div>
             {done.validUntil && (
@@ -190,7 +190,7 @@ export function PublicFill({ token }: { token: string }) {
     return (
       <Shell>
         <div className="px-6 sm:px-10 py-14 text-center">
-          <CheckCircle2 className="w-10 h-10 mx-auto text-[#10b981] mb-3" />
+          <CheckCircle2 className="w-10 h-10 mx-auto text-[#34A853] mb-3" />
           <div className="font-bold text-[15px] text-[#334155]">Already submitted</div>
           <p className="text-[13px] text-[#94a3b8] mt-1.5 max-w-sm mx-auto">
             This checklist has already been completed once. If you need to make a change, contact the recruiter who sent it to you.
@@ -217,20 +217,18 @@ export function PublicFill({ token }: { token: string }) {
     <Shell>
       {/* VaultVerify header */}
       <div className="px-6 sm:px-10 pt-7 pb-6 text-white"
-        style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.35), transparent 60%), linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
+        style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(46,158,91,0.35), transparent 60%), linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}>
         <div className="flex items-center gap-2.5 pb-4 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-4.5 h-4.5" />
-          </div>
+          <img src="/vaultverify-logo-128.png" alt="VaultVerify logo" width={34} height={34} className="rounded-lg shrink-0" />
           <div>
             <div className="text-[15px] font-extrabold tracking-tight leading-none">{CHECKLIST_BRAND.name}</div>
-            <div className="text-[10px] text-[#a8b8d8] mt-1">{CHECKLIST_BRAND.tagline}</div>
+            <div className="text-[10px] text-[#A8CFB8] mt-1">{CHECKLIST_BRAND.tagline}</div>
           </div>
         </div>
         <h1 className="text-[22px] font-extrabold tracking-tight m-0 mt-4">Skills Checklist</h1>
-        <p className="text-[12px] text-[#a8b8d8] m-0 mt-0.5">Self-assessed — not independently verified</p>
+        <p className="text-[12px] text-[#A8CFB8] m-0 mt-0.5">Self-assessed — not independently verified</p>
         <p className="text-[13px] font-bold text-white m-0 mt-3">
-          {roleLine} <span className="text-[#a8b8d8] font-medium">· {allSkills.length} skills</span>
+          {roleLine} <span className="text-[#A8CFB8] font-medium">· {allSkills.length} skills</span>
         </p>
       </div>
 
@@ -241,7 +239,7 @@ export function PublicFill({ token }: { token: string }) {
           <span className="tabular-nums">{progress}%</span>
         </div>
         <div className="h-2 rounded-full bg-[#e2e7f0] overflow-hidden">
-          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#818cf8,#4f46e5)' }} />
+          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#7BC894,#1F7A44)' }} />
         </div>
         <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
@@ -336,8 +334,8 @@ export function PublicFill({ token }: { token: string }) {
                         {(['yes', 'no'] as const).map((v) => {
                           const selected = answers[q.id] === v
                           const tone = v === 'yes'
-                            ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-                            : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+                            ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+                            : 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
                           return (
                             <button key={v} type="button" role="radio" aria-checked={selected}
                               onClick={() => setAnswers((a) => ({ ...a, [q.id]: v }))}
@@ -376,19 +374,19 @@ export function PublicFill({ token }: { token: string }) {
           <p className="text-[11.5px] italic text-[#94a3b8] mt-1">{ATTESTATION.intro}</p>
           <label className="flex gap-2.5 items-start mt-3 cursor-pointer">
             <input type="checkbox" checked={confirmRatings} onChange={(e) => setConfirmRatings(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-[#4f46e5] cursor-pointer" />
+              className="mt-0.5 w-4 h-4 accent-[#1F7A44] cursor-pointer" />
             <span className="text-[12.5px] text-[#475569] leading-relaxed">{ATTESTATION.confirm}</span>
           </label>
           <label className="flex gap-2.5 items-start mt-2.5 cursor-pointer">
             <input type="checkbox" checked={confirmTerms} onChange={(e) => setConfirmTerms(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-[#4f46e5] cursor-pointer" />
+              className="mt-0.5 w-4 h-4 accent-[#1F7A44] cursor-pointer" />
             <span className="text-[12.5px] text-[#475569] leading-relaxed">{ATTESTATION.agree}</span>
           </label>
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155] flex items-center gap-1.5">
-                <PenLine className="w-3.5 h-3.5 text-[#4f46e5]" /> Signature — type your full legal name
+                <PenLine className="w-3.5 h-3.5 text-[#1F7A44]" /> Signature — type your full legal name
               </Label>
               <Input
                 value={signedName}
@@ -419,9 +417,9 @@ export function PublicFill({ token }: { token: string }) {
             Completed once — you can&apos;t change answers after submitting. Valid {VALIDITY_DAYS} days.
           </div>
           <div className="flex items-center gap-2.5">
-            {submitError && <span className="text-[12.5px] font-semibold text-[#dc2626] max-w-[240px] text-right">{submitError}</span>}
+            {submitError && <span className="text-[12.5px] font-semibold text-[#E5484D] max-w-[240px] text-right">{submitError}</span>}
             <Button onClick={submit} disabled={busy || !canSubmit} className="h-11 px-6 font-bold"
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)', boxShadow: '0 4px 14px rgba(31,122,68,0.30)' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Submit checklist
             </Button>
@@ -437,9 +435,9 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen w-full py-7 px-4"
       style={{
         background:
-          'radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,0.10), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(26,42,108,0.08), transparent 60%), linear-gradient(180deg,#f6f8fc 0%, #eef2f9 100%)',
+          'radial-gradient(1200px 600px at 10% -10%, rgba(31,122,68,0.10), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(26,42,108,0.08), transparent 60%), linear-gradient(180deg,#f6f8fc 0%, #eef2f9 100%)',
       }}>
-      <div className="max-w-[850px] mx-auto rounded-3xl overflow-hidden border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08),0_30px_80px_-20px_rgba(79,70,229,0.18)]">
+      <div className="max-w-[850px] mx-auto rounded-3xl overflow-hidden border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08),0_30px_80px_-20px_rgba(31,122,68,0.18)]">
         {children}
       </div>
       <p className="text-center text-[11.5px] text-[#94a3b8] mt-5">Powered by {CHECKLIST_BRAND.name}</p>

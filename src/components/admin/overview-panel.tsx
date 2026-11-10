@@ -29,7 +29,7 @@ export function OverviewPanel({ version }: Props) {
 
   if (error) {
     return (
-      <div className="text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">
+      <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">
         {error}
       </div>
     )
@@ -76,7 +76,7 @@ export function OverviewPanel({ version }: Props) {
           <div key={s.label}
             className="rounded-2xl border border-[#eaeef5] bg-white shadow-[0_6px_20px_rgba(15,23,42,0.05)] px-4 py-3.5">
             <div className="flex items-center gap-1.5 text-[#64748b]">
-              <span className="text-[#4f46e5]">{s.icon}</span>
+              <span className="text-[#1F7A44]">{s.icon}</span>
               <span className="text-[10px] font-bold uppercase tracking-[0.7px]">{s.label}</span>
             </div>
             <div className="text-[26px] font-extrabold tabular-nums text-[#0f172a] leading-none mt-1.5">{s.value}</div>
@@ -89,7 +89,7 @@ export function OverviewPanel({ version }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 py-5">
           <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#4f46e5]" /> Latest submissions
+            <Activity className="w-4 h-4 text-[#1F7A44]" /> Latest submissions
           </h2>
           {data.recentSubmissions.length === 0 ? (
             <div className="text-[13px] text-[#94a3b8] py-4 text-center">No completed checklists yet.</div>
@@ -118,7 +118,7 @@ export function OverviewPanel({ version }: Props) {
 
         <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 py-5">
           <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-[#4f46e5]" /> Newest recruiters
+            <UserPlus className="w-4 h-4 text-[#1F7A44]" /> Newest recruiters
           </h2>
           {data.recentSignups.map((u) => (
             <div key={u.id} className="py-2.5 flex items-center gap-3 flex-wrap">

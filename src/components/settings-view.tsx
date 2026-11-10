@@ -71,7 +71,7 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
   return (
     <div className="max-w-[720px] mx-auto">
       <h1 className="text-[24px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2.5 mb-1">
-        <Settings2 className="w-6 h-6 text-[#4f46e5]" /> Settings
+        <Settings2 className="w-6 h-6 text-[#1F7A44]" /> Settings
       </h1>
       <p className="text-[13px] text-[#64748b] mb-5">Your account and the defaults your calculator starts with.</p>
 
@@ -143,7 +143,7 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
                 <ImageIcon className="w-4 h-4" /> Upload logo (≤ 256 KB)
               </Button>
               {logoUrl && (
-                <Button variant="ghost" className="h-10 ml-2 text-[13px] text-[#dc2626]" onClick={() => setLogoUrl(null)}>Remove</Button>
+                <Button variant="ghost" className="h-10 ml-2 text-[13px] text-[#E5484D]" onClick={() => setLogoUrl(null)}>Remove</Button>
               )}
               <p className="text-[11.5px] text-[#94a3b8] mt-2">Shown in the calculator header instead of the default icon.</p>
             </div>
@@ -153,11 +153,11 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
         {/* Save */}
         <div className="px-6 sm:px-7 py-4 bg-[#f8fafc] flex items-center justify-between gap-3">
           <div>
-            {error && <span className="text-[12.5px] font-semibold text-[#dc2626]">{error}</span>}
-            {savedMsg && <span className="text-[12.5px] font-semibold text-[#059669]">{savedMsg}</span>}
+            {error && <span className="text-[12.5px] font-semibold text-[#E5484D]">{error}</span>}
+            {savedMsg && <span className="text-[12.5px] font-semibold text-[#2E9E5B]">{savedMsg}</span>}
           </div>
           <Button onClick={save} disabled={busy} className="font-bold gap-2 h-11"
-            style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+            style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Save settings
           </Button>
         </div>

@@ -78,12 +78,14 @@ async function seedSkills() {
     })
     // Deduplicate skills within a template (case-insensitive)
     const seen = new Set<string>()
-    const skills: { skillName: string; category: string; questionType: string; sortOrder: number; hasNaOption: boolean }[] = []
+    const skills: { skillName: string; category: string; questionType: string; sortOrder: number; categorySort: number; hasNaOption: boolean }[] = []
     const order = new Map<string, number>() // per-category sort order
+    const catOrder = new Map<string, number>() // natural (xlsx) category order
     for (const r of trows) {
       const dedupe = `${r.category.toLowerCase()}\u0000${r.skillName.toLowerCase()}`
       if (seen.has(dedupe)) continue
       seen.add(dedupe)
+      if (!catOrder.has(r.category)) catOrder.set(r.category, catOrder.size)
       const so = (order.get(r.category) ?? -1) + 1
       order.set(r.category, so)
       skills.push({
@@ -91,6 +93,7 @@ async function seedSkills() {
         category: r.category,
         questionType: r.questionType,
         sortOrder: so,
+        categorySort: catOrder.get(r.category)!,
         hasNaOption: r.hasNaOption,
       })
     }

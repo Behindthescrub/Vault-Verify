@@ -106,11 +106,11 @@ export function EmailPanel() {
     <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] divide-y divide-[#eef1f6]">
       <div className="px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-1 flex items-center gap-2">
-          <Mail className="w-4 h-4 text-[#4f46e5]" /> Brevo transactional email
+          <Mail className="w-4 h-4 text-[#1F7A44]" /> Brevo transactional email
         </h2>
         <p className="text-[12px] text-[#94a3b8] mb-3.5">
           Checklist invitations are sent through Brevo. Get your API v3 key at
-          <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noreferrer" className="text-[#4f46e5] font-bold ml-1">app.brevo.com → SMTP &amp; API keys</a>.
+          <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noreferrer" className="text-[#1F7A44] font-bold ml-1">app.brevo.com → SMTP &amp; API keys</a>.
           {settings?.brevoApiKeySet && (
             <span className="block mt-1">Current key: <code className="bg-[#f1f5f9] rounded px-1.5 py-0.5">{settings.brevoApiKeyMasked}</code></span>
           )}
@@ -143,7 +143,7 @@ export function EmailPanel() {
 
         <div className="flex flex-wrap items-center gap-3 mt-4">
           <Button onClick={saveBrevo} disabled={busy} className="font-bold gap-2 h-11"
-            style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+            style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Brevo settings
           </Button>
           <div className="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -157,12 +157,12 @@ export function EmailPanel() {
 
         {(saveMsg || saveError) && (
           <div className={`mt-3 text-[12.5px] font-semibold border-l-[3px] rounded-md px-3.5 py-2.5 ${
-            saveMsg ? 'text-[#059669] bg-[#ecfdf5] border-[#10b981]' : 'text-[#dc2626] bg-[#fef2f2] border-[#dc2626]'
+            saveMsg ? 'text-[#2E9E5B] bg-[#E9F5EC] border-[#34A853]' : 'text-[#E5484D] bg-[#FDEEEE] border-[#E5484D]'
           }`}>{saveMsg || saveError}</div>
         )}
         {testResult && (
           <div className={`mt-3 text-[12.5px] font-semibold border-l-[3px] rounded-md px-3.5 py-2.5 ${
-            testResult.ok ? 'text-[#059669] bg-[#ecfdf5] border-[#10b981]' : 'text-[#dc2626] bg-[#fef2f2] border-[#dc2626]'
+            testResult.ok ? 'text-[#2E9E5B] bg-[#E9F5EC] border-[#34A853]' : 'text-[#E5484D] bg-[#FDEEEE] border-[#E5484D]'
           }`}>{testResult.text}</div>
         )}
       </div>
@@ -170,16 +170,16 @@ export function EmailPanel() {
       {/* Email log */}
       <div className="px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-          <History className="w-4 h-4 text-[#4f46e5]" /> Send log (last 50)
+          <History className="w-4 h-4 text-[#1F7A44]" /> Send log (last 50)
         </h2>
         <div className="rounded-2xl border border-[#eef1f6] max-h-72 overflow-y-auto divide-y divide-[#eef1f6]">
           {logs.length === 0 && <div className="px-4 py-6 text-center text-[13px] text-[#94a3b8]">No emails logged yet.</div>}
           {logs.map((l) => (
             <div key={l.id} className="px-4 py-2.5 flex items-center gap-3 flex-wrap">
               <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
-                l.status === 'sent' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-                  : l.status === 'test-mode' ? 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]'
-                    : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+                l.status === 'sent' ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+                  : l.status === 'test-mode' ? 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]'
+                    : 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
               }`}>{l.status}</span>
               <span className="text-[13px] font-semibold text-[#334155] truncate max-w-[220px]">{l.toEmail}</span>
               <span className="text-[12px] text-[#94a3b8] flex-1 truncate">{l.subject}{l.error ? ` — ${l.error}` : ''}</span>

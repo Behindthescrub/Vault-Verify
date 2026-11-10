@@ -20,13 +20,11 @@ export function TopBar({ user, tab, onTab, onLogout }: {
 }) {
   return (
     <header className="no-print sticky top-0 z-40"
-      style={{ background: 'linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
+      style={{ background: 'linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}>
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center gap-3">
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white">
-              <Calculator className="w-4.5 h-4.5" />
-            </div>
+            <img src="/vaultverify-logo-128.png" alt="VaultVerify logo" width={30} height={30} className="rounded-lg shrink-0" />
             <span className="text-white font-extrabold text-[15px] tracking-tight hidden sm:block">Recruiter tool</span>
           </div>
 
@@ -36,7 +34,7 @@ export function TopBar({ user, tab, onTab, onLogout }: {
                 aria-current={tab === t.key ? 'page' : undefined}
                 className={`h-9 px-3.5 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 ${
                   tab === t.key
-                    ? 'bg-[#4f46e5] text-white shadow-[0_0_0_3px_rgba(79,70,229,0.25)]'
+                    ? 'bg-[#1F7A44] text-white shadow-[0_0_0_3px_rgba(31,122,68,0.25)]'
                     : 'text-[#cbd5e1] hover:text-white hover:bg-white/10'
                 }`}>
                 {t.icon}{t.label}
@@ -47,11 +45,11 @@ export function TopBar({ user, tab, onTab, onLogout }: {
           <div className="flex items-center gap-2 shrink-0">
             {user.role === 'superadmin' && (
               <a href="/superadmin" title="Open the superadmin console"
-                className="h-9 px-3 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 bg-[#4f46e5]/30 border border-[#818cf8]/40 text-[#c7d2fe] hover:bg-[#4f46e5]/50 hover:text-white transition-colors">
+                className="h-9 px-3 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 bg-[#1F7A44]/30 border border-[#7BC894]/40 text-[#CBE8D6] hover:bg-[#1F7A44]/50 hover:text-white transition-colors">
                 <ShieldCheck className="w-4 h-4" /> Superadmin <ExternalLink className="w-3.5 h-3.5 opacity-70" />
               </a>
             )}
-            <span className="text-[12px] text-[#a8b8d8] font-medium hidden md:block max-w-[180px] truncate">
+            <span className="text-[12px] text-[#A8CFB8] font-medium hidden md:block max-w-[180px] truncate">
               {user.email}
             </span>
             <Button variant="ghost" onClick={onLogout} title="Log out"

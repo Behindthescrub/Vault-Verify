@@ -251,20 +251,20 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
       <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
         <div>
           <h1 className="text-[24px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2.5">
-            <ClipboardCheck className="w-6 h-6 text-[#4f46e5]" /> Skills Checklists
+            <ClipboardCheck className="w-6 h-6 text-[#1F7A44]" /> Skills Checklists
           </h1>
           <p className="text-[13px] text-[#64748b] mt-1">
             {stats.total} total · {stats.sent} awaiting candidate · {stats.submitted} completed
           </p>
         </div>
         <Button onClick={openNew} className="h-11 font-bold gap-2"
-          style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
+          style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)', boxShadow: '0 4px 14px rgba(31,122,68,0.30)' }}>
           <Plus className="w-4 h-4" /> New checklist
         </Button>
       </div>
 
       {error && (
-        <div className="mb-4 text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">{error}</div>
+        <div className="mb-4 text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">{error}</div>
       )}
 
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] overflow-hidden">
@@ -272,13 +272,13 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
           <div className="py-16 flex justify-center text-[#94a3b8]"><Loader2 className="w-6 h-6 animate-spin" /></div>
         ) : items.length === 0 ? (
           <div className="py-16 px-6 text-center">
-            <CheckSquare className="w-10 h-10 mx-auto text-[#c7d2fe] mb-3" />
+            <CheckSquare className="w-10 h-10 mx-auto text-[#CBE8D6] mb-3" />
             <div className="font-bold text-[15px] text-[#334155]">No checklists yet</div>
             <p className="text-[13px] text-[#94a3b8] mt-1 max-w-sm mx-auto">
               Create your first checklist from {templates.length} ready-made profession templates, then email it to a candidate.
             </p>
             <Button onClick={openNew} className="mt-4 font-bold gap-2 h-10"
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
               <Plus className="w-4 h-4" /> Create one now
             </Button>
           </div>
@@ -298,13 +298,13 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {c.status === 'submitted' && c.avgRating != null && (
-                    <span className="text-[12px] font-bold tabular-nums px-2 py-0.5 rounded-full border bg-[#dcfce7] border-[#86efac] text-[#15803d]">
+                    <span className="text-[12px] font-bold tabular-nums px-2 py-0.5 rounded-full border bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]">
                       avg {c.avgRating.toFixed(1)}/4
                     </span>
                   )}
                   <StatusChip status={c.status} />
                   <Button variant="ghost" size="sm" className="h-9 gap-1.5" onClick={() => copyLink(c)}>
-                    {copied === c.id ? <Copy className="w-3.5 h-3.5 text-[#059669]" /> : <Link2 className="w-3.5 h-3.5" />}
+                    {copied === c.id ? <Copy className="w-3.5 h-3.5 text-[#2E9E5B]" /> : <Link2 className="w-3.5 h-3.5" />}
                     {copied === c.id ? 'Copied' : 'Link'}
                   </Button>
                   <Button variant="ghost" size="sm" className="h-9 gap-1.5" onClick={() => openInvite(c)}>
@@ -316,7 +316,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                   <Button variant="ghost" size="sm" className="h-9 gap-1.5" onClick={() => onOpenDetail(c.id)}>
                     <Eye className="w-3.5 h-3.5" /> View
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-[#dc2626] hover:bg-[#fef2f2] hover:text-[#b91c1c]"
+                  <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-[#E5484D] hover:bg-[#FDEEEE] hover:text-[#C13A3E]"
                     onClick={() => deleteChecklist(c.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
@@ -356,10 +356,10 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                   )}
                   {searchResults.map((t) => (
                     <button key={t.id} type="button" onClick={() => pickTemplate(t)}
-                      className="w-full text-left rounded-2xl border border-[#eaeef5] bg-white p-3.5 hover:border-[#c7d2fe] hover:bg-[#f8fafc] cursor-pointer transition-colors flex items-center gap-3">
+                      className="w-full text-left rounded-2xl border border-[#eaeef5] bg-white p-3.5 hover:border-[#CBE8D6] hover:bg-[#f8fafc] cursor-pointer transition-colors flex items-center gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-[13.5px] text-[#0f172a] truncate">
-                          <span className="text-[#4f46e5]">{t.jobTitle}</span> · {t.specialty}
+                          <span className="text-[#1F7A44]">{t.jobTitle}</span> · {t.specialty}
                         </div>
                         <div className="text-[11.5px] text-[#94a3b8] mt-0.5">{t.profession} · {t.categoryCount} categories · {t.skillCount} skills</div>
                       </div>
@@ -377,7 +377,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                       {professions.map((p) => (
                         <button key={p} type="button" onClick={() => chooseProfession(p)}
                           className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
-                            selProfession === p ? 'bg-[#eef2ff] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
+                            selProfession === p ? 'bg-[#E9F5EC] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
                           }`}>
                           {p}
                         </button>
@@ -392,7 +392,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                       {jobTitles.map((j) => (
                         <button key={j} type="button" onClick={() => chooseJobTitle(j)}
                           className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
-                            selJobTitle === j ? 'bg-[#eef2ff] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
+                            selJobTitle === j ? 'bg-[#E9F5EC] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
                           }`}>
                           {j}
                         </button>
@@ -417,7 +417,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
               )}
 
               {loadingSkills && <div className="flex items-center gap-2 text-[13px] text-[#64748b]"><Loader2 className="w-4 h-4 animate-spin" /> Loading skills…</div>}
-              {createError && <div className="text-[13px] font-semibold text-[#dc2626]">{createError}</div>}
+              {createError && <div className="text-[13px] font-semibold text-[#E5484D]">{createError}</div>}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -434,7 +434,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
             <div className="space-y-3">
               {selTemplate && (
                 <div className="flex items-center gap-2 text-[12.5px] text-[#64748b] flex-wrap">
-                  <span className="font-bold text-[#4f46e5]">{selTemplate.profession}</span>
+                  <span className="font-bold text-[#1F7A44]">{selTemplate.profession}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span className="font-bold text-[#334155]">{selTemplate.jobTitle}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -451,7 +451,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                   <div key={c.category} className="p-3.5">
                     <div className="font-bold text-[12.5px] text-[#334155] uppercase tracking-wide mb-2 flex items-center justify-between">
                       <span>{c.category}</span>
-                      <button type="button" className="text-[11px] font-bold text-[#dc2626] cursor-pointer"
+                      <button type="button" className="text-[11px] font-bold text-[#E5484D] cursor-pointer"
                         onClick={() => setTemplateItems((its) => its.filter((x) => x.category !== c.category))}>
                         Remove category
                       </button>
@@ -460,7 +460,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                       {c.skills.map((s) => (
                         <button key={s.name} type="button" onClick={() => toggleSkill(c.category, s.name)}
                           title="Click to remove this skill"
-                          className="text-[12px] font-medium px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors bg-[#eef2ff] border-[#c7d2fe] text-[#3730a3] hover:bg-[#fef2f2] hover:border-[#fca5a5] hover:text-[#b91c1c]">
+                          className="text-[12px] font-medium px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors bg-[#E9F5EC] border-[#CBE8D6] text-[#3730a3] hover:bg-[#FDEEEE] hover:border-[#F3B8BA] hover:text-[#C13A3E]">
                           {s.name}
                         </button>
                       ))}
@@ -468,11 +468,11 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
                   </div>
                 ))}
               </div>
-              {createError && <div className="text-[13px] font-semibold text-[#dc2626]">{createError}</div>}
+              {createError && <div className="text-[13px] font-semibold text-[#E5484D]">{createError}</div>}
               <DialogFooter className="flex !justify-between sm:!justify-between gap-2">
                 <Button variant="ghost" onClick={() => setStep('pick')}>Back</Button>
                 <Button onClick={createChecklist} disabled={creating || selCount === 0} className="font-bold gap-2"
-                  style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+                  style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
                   {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Create checklist ({selCount} skills)
                 </Button>
@@ -486,7 +486,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
       <Dialog open={!!inviteFor} onOpenChange={(o) => { if (!o) setInviteFor(null) }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Send className="w-4 h-4 text-[#4f46e5]" /> Email this checklist</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Send className="w-4 h-4 text-[#1F7A44]" /> Email this checklist</DialogTitle>
             <DialogDescription>
               The candidate receives a link they can open on any device — no account needed.
               {inviteFor && (
@@ -503,11 +503,11 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Personal message (optional)</Label>
               <textarea value={inviteMsg} onChange={(e) => setInviteMsg(e.target.value)} rows={3} maxLength={2000}
                 placeholder="Hi Jane — please complete this checklist at your convenience. It takes about 10 minutes."
-                className="w-full mt-1.5 rounded-xl border border-[#d8dee9] px-3.5 py-2.5 text-[14px] outline-none focus:border-[#4f46e5] focus:ring-4 focus:ring-[rgba(79,70,229,0.12)] resize-none" />
+                className="w-full mt-1.5 rounded-xl border border-[#d8dee9] px-3.5 py-2.5 text-[14px] outline-none focus:border-[#1F7A44] focus:ring-4 focus:ring-[rgba(31,122,68,0.12)] resize-none" />
             </div>
             {inviteResult && (
               <div className={`rounded-[10px] border-l-[3px] px-3.5 py-2.5 text-[13px] leading-relaxed ${
-                inviteResult.ok ? 'border-[#10b981] text-[#059669] bg-[#ecfdf5]' : 'border-[#dc2626] text-[#dc2626] bg-[#fef2f2]'
+                inviteResult.ok ? 'border-[#34A853] text-[#2E9E5B] bg-[#E9F5EC]' : 'border-[#E5484D] text-[#E5484D] bg-[#FDEEEE]'
               }`}>
                 {inviteResult.text}
                 {inviteResult.link && (
@@ -524,7 +524,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setInviteFor(null)}>Close</Button>
             <Button onClick={sendInvite} disabled={inviteBusy} className="font-bold gap-2"
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
               {inviteBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Send invitation
             </Button>
@@ -538,8 +538,8 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
 function StatusChip({ status }: { status: ChecklistSummary['status'] }) {
   const map: Record<ChecklistSummary['status'], { text: string; cls: string }> = {
     draft: { text: 'Draft', cls: 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]' },
-    sent: { text: 'Awaiting candidate', cls: 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]' },
-    submitted: { text: 'Completed', cls: 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' },
+    sent: { text: 'Awaiting candidate', cls: 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]' },
+    submitted: { text: 'Completed', cls: 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]' },
   }
   const m = map[status] ?? map.draft
   return (

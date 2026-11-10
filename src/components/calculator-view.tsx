@@ -194,10 +194,10 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
       <div className="rounded-t-3xl px-6 sm:px-9 pt-6 pb-5 text-white relative flex items-center gap-4 flex-wrap"
         style={{
           background:
-            'radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.35), transparent 60%), linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)',
+            'radial-gradient(600px 200px at 0% 0%, rgba(46,158,91,0.35), transparent 60%), linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)',
         }}>
         <div className="after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-0 after:h-[3px]"
-          style={{ background: 'linear-gradient(90deg,#818cf8,#4f46e5,#22d3ee)' }} />
+          style={{ background: 'linear-gradient(90deg,#7BC894,#1F7A44,#22d3ee)' }} />
         <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 backdrop-blur flex items-center justify-center overflow-hidden shrink-0">
           {settings.companyLogoUrl ? (
             <img src={settings.companyLogoUrl} alt="Company logo" className="w-full h-full object-cover" />
@@ -207,13 +207,13 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
         </div>
         <div>
           <h1 className="text-[22px] font-extrabold tracking-tight m-0">{company}</h1>
-          <p className="text-[13px] font-medium text-[#a8b8d8] m-0 mt-0.5">Margin → Traveler Stipend Split</p>
+          <p className="text-[13px] font-medium text-[#A8CFB8] m-0 mt-0.5">Margin → Traveler Stipend Split</p>
         </div>
       </div>
 
       {/* ===== Flow track ===== */}
       <div className="flex gap-2 px-6 sm:px-9 py-4 flex-wrap"
-        style={{ background: 'linear-gradient(180deg,#0a1628,#0d1a35)' }}>
+        style={{ background: 'linear-gradient(180deg,#0A2B23,#0d1a35)' }}>
         <FlowStep active>1. Margin Calculator</FlowStep>
         <FlowStep arrow>2. Stipend Split</FlowStep>
         <FlowStep arrow>3. Saved Runs</FlowStep>
@@ -224,7 +224,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
         action={
           <button type="button" onClick={() => setRevealed((r) => !r)}
             className={`h-8 px-3.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 cursor-pointer border transition-colors ${
-              revealed ? 'bg-[#eef2ff] text-[#4338ca] border-[#c7d2fe]' : 'bg-[#f1f4f9] text-[#475569] border-[#d8dee9] hover:bg-[#e5e9f0]'
+              revealed ? 'bg-[#E9F5EC] text-[#1E6B3C] border-[#CBE8D6]' : 'bg-[#f1f4f9] text-[#475569] border-[#d8dee9] hover:bg-[#e5e9f0]'
             }`}>
             {revealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             {revealed ? 'Hide breakdown' : 'Reveal breakdown'}
@@ -332,7 +332,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
                   <label className="block">
                     <span className="block text-[10.5px] font-bold tracking-[0.6px] uppercase text-[#334155] mb-1.5">Month</span>
                     <select value={pdMonth} onChange={(e) => setPdMonth(Number(e.target.value))}
-                      className="w-full h-[46px] rounded-xl border border-[#d8dee9] px-3.5 text-[14px] font-medium bg-white focus:border-[#4f46e5] focus:ring-4 focus:ring-[rgba(79,70,229,0.12)] outline-none">
+                      className="w-full h-[46px] rounded-xl border border-[#d8dee9] px-3.5 text-[14px] font-medium bg-white focus:border-[#1F7A44] focus:ring-4 focus:ring-[rgba(31,122,68,0.12)] outline-none">
                       {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                     </select>
                   </label>
@@ -340,7 +340,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
                 <div className="mt-4">
                   <Button onClick={fetchPerDiem} disabled={fetching}
                     className="text-[13.5px] h-[46px] font-bold"
-                    style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
+                    style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)', boxShadow: '0 4px 14px rgba(31,122,68,0.30)' }}>
                     {fetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     Fetch GSA Per Diem
                   </Button>
@@ -350,7 +350,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
             )}
           </div>
         ) : (
-          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-[#c7d2fe] bg-[#eef2ff] px-4 py-3 text-[13px] font-semibold text-[#3730a3]">
+          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-[#CBE8D6] bg-[#E9F5EC] px-4 py-3 text-[13px] font-semibold text-[#3730a3]">
             <MapPin className="w-[18px] h-[18px] shrink-0" />
             <span>Local candidate — entire pay package goes to W2 (taxable). No stipend applied.</span>
           </div>
@@ -394,12 +394,12 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
           </div>
           <Button onClick={saveRun} disabled={savingRun}
             className="h-[46px] self-end sm:self-auto text-[13.5px] font-bold"
-            style={{ background: 'linear-gradient(180deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
+            style={{ background: 'linear-gradient(180deg,#34A853,#2E9E5B)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
             {savingRun ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save calculation
           </Button>
         </div>
-        {runError && <div className="mt-2 text-[13px] font-semibold text-[#dc2626]">{runError}</div>}
+        {runError && <div className="mt-2 text-[13px] font-semibold text-[#E5484D]">{runError}</div>}
 
         <div className="mt-4 rounded-2xl border border-[#eaeef5] divide-y divide-[#eef1f6] overflow-hidden">
           {saved.length === 0 && (
@@ -428,7 +428,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
                     <Clock4 className="w-3.5 h-3.5" /> Load
                   </Button>
                   <Button variant="ghost" onClick={() => deleteRun(run.id)}
-                    className="h-9 px-3 text-[12.5px] text-[#dc2626] hover:bg-[#fef2f2] hover:text-[#b91c1c]">
+                    className="h-9 px-3 text-[12.5px] text-[#E5484D] hover:bg-[#FDEEEE] hover:text-[#C13A3E]">
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
@@ -451,7 +451,7 @@ function FlowStep({ children, active, arrow }: { children: React.ReactNode; acti
     return (
       <span className={`text-[11px] font-bold tracking-[0.4px] uppercase px-3.5 py-1.5 rounded-full border ${
         active
-          ? 'bg-[#4f46e5] text-white border-[#6366f1] shadow-[0_0_0_3px_rgba(79,70,229,0.25)]'
+          ? 'bg-[#1F7A44] text-white border-[#2E9E5B] shadow-[0_0_0_3px_rgba(31,122,68,0.25)]'
           : 'bg-white/[0.06] text-[#cbd5e1] border-white/[0.08]'
       }`}>
         → {children}
@@ -461,7 +461,7 @@ function FlowStep({ children, active, arrow }: { children: React.ReactNode; acti
   return (
     <span className={`text-[11px] font-bold tracking-[0.4px] uppercase px-3.5 py-1.5 rounded-full border ${
       active
-        ? 'bg-[#4f46e5] text-white border-[#6366f1] shadow-[0_0_0_3px_rgba(79,70,229,0.25)]'
+        ? 'bg-[#1F7A44] text-white border-[#2E9E5B] shadow-[0_0_0_3px_rgba(31,122,68,0.25)]'
         : 'bg-white/[0.06] text-[#cbd5e1] border-white/[0.08]'
     }`}>
       {children}
@@ -476,7 +476,7 @@ function Section({ num, title, desc, action, children }: {
     <section className="px-6 sm:px-9 py-7 border-b border-[#eef1f6] last:border-b-0">
       <h2 className="flex items-center gap-3 text-[17px] font-extrabold text-[#0f172a] tracking-tight m-0 flex-wrap">
         <span className="w-[26px] h-[26px] rounded-lg text-white text-[13px] font-extrabold inline-flex items-center justify-center shrink-0"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#4338ca)', boxShadow: '0 4px 10px rgba(79,70,229,0.35)' }}>
+          style={{ background: 'linear-gradient(135deg,#2E9E5B,#1E6B3C)', boxShadow: '0 4px 10px rgba(31,122,68,0.35)' }}>
           {num}
         </span>
         {title}
@@ -502,7 +502,7 @@ function NumField({ label, hint, value, onChange, step = 1, amber }: {
         className={`w-full h-[46px] rounded-xl border px-3.5 text-[14px] font-medium outline-none transition-[border-color,box-shadow] tabular-nums ${
           amber
             ? 'border-[#fde68a] bg-white focus:border-[#f59e0b] focus:ring-4 focus:ring-[rgba(245,158,11,0.12)]'
-            : 'border-[#d8dee9] bg-white focus:border-[#4f46e5] focus:ring-4 focus:ring-[rgba(79,70,229,0.12)]'
+            : 'border-[#d8dee9] bg-white focus:border-[#1F7A44] focus:ring-4 focus:ring-[rgba(31,122,68,0.12)]'
         }`} />
     </label>
   )
@@ -527,16 +527,16 @@ function ToggleRow({ on, onToggle, active, variant, titleOn, titleOff, subOn, su
   return (
     <div className={`flex items-center gap-3.5 rounded-2xl px-4 py-3.5 mt-3.5 border transition-colors ${
       traveler
-        ? (on ? 'bg-gradient-to-br from-[#f0fdf4] to-[#ecfdf5] border-[#bbf7d0]' : 'bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] border-[#e2e8f0]')
+        ? (on ? 'bg-gradient-to-br from-[#f0fdf4] to-[#E9F5EC] border-[#bbf7d0]' : 'bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] border-[#e2e8f0]')
         : (on
-          ? (active ? 'bg-gradient-to-br from-[#fef3c7] to-[#fde68a] border-[#f59e0b] shadow-[0_0_0_3px_rgba(245,158,11,0.12)]' : 'bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] border-[#fde68a]')
+          ? (active ? 'bg-gradient-to-br from-[#FDF1DC] to-[#fde68a] border-[#f59e0b] shadow-[0_0_0_3px_rgba(245,158,11,0.12)]' : 'bg-gradient-to-br from-[#fffbeb] to-[#FDF1DC] border-[#fde68a]')
           : 'bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] border-[#e2e8f0]')
     }`}>
       <label className="relative inline-block w-[46px] h-[26px] shrink-0 cursor-pointer">
         <input type="checkbox" checked={on} onChange={(e) => onToggle(e.target.checked)} className="opacity-0 w-0 h-0 absolute" />
         <span className={`absolute inset-0 rounded-full transition-colors ${
           on
-            ? (traveler ? 'bg-gradient-to-b from-[#10b981] to-[#059669]' : 'bg-gradient-to-b from-[#10b981] to-[#059669]')
+            ? (traveler ? 'bg-gradient-to-b from-[#34A853] to-[#2E9E5B]' : 'bg-gradient-to-b from-[#34A853] to-[#2E9E5B]')
             : 'bg-[#cbd5e1]'
         }`} />
         <span className={`absolute bottom-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-transform ${
@@ -545,7 +545,7 @@ function ToggleRow({ on, onToggle, active, variant, titleOn, titleOff, subOn, su
       </label>
       <div className="flex-1">
         <strong className={`block text-[14px] font-bold tracking-tight ${
-          traveler ? (on ? 'text-[#047857]' : 'text-[#0f172a]') : (on ? (active ? 'text-[#b45309]' : 'text-[#92400e]') : 'text-[#0f172a]')
+          traveler ? (on ? 'text-[#1E6B3C]' : 'text-[#0f172a]') : (on ? (active ? 'text-[#9A6200]' : 'text-[#92400e]') : 'text-[#0f172a]')
         }`}>
           {on ? titleOn : titleOff}
         </strong>
@@ -559,9 +559,9 @@ function SourcePill({ active, onClick, children }: { active: boolean; onClick: (
   return (
     <button type="button" onClick={onClick}
       className={`text-[13px] font-bold px-4.5 py-2 rounded-[10px] cursor-pointer transition-colors inline-flex items-center gap-2 ${
-        active ? 'bg-white text-[#1a2a6c] shadow-[0_2px_8px_rgba(26,42,108,0.12)] ring-1 ring-[rgba(79,70,229,0.15)]' : 'text-[#64748b] hover:text-[#334155]'
+        active ? 'bg-white text-[#0E3B32] shadow-[0_2px_8px_rgba(26,42,108,0.12)] ring-1 ring-[rgba(31,122,68,0.15)]' : 'text-[#64748b] hover:text-[#334155]'
       }`}>
-      {active && <span className="w-2 h-2 rounded-full bg-[#4f46e5] shrink-0" />}
+      {active && <span className="w-2 h-2 rounded-full bg-[#1F7A44] shrink-0" />}
       {children}
     </button>
   )
@@ -569,9 +569,9 @@ function SourcePill({ active, onClick, children }: { active: boolean; onClick: (
 
 function StatusMessage({ kind, children }: { kind: 'idle' | 'error' | 'success' | 'busy'; children: React.ReactNode }) {
   const cls = kind === 'error'
-    ? 'border-[#dc2626] text-[#dc2626] bg-[#fef2f2]'
+    ? 'border-[#E5484D] text-[#E5484D] bg-[#FDEEEE]'
     : kind === 'success'
-      ? 'border-[#10b981] text-[#059669] bg-[#ecfdf5]'
+      ? 'border-[#34A853] text-[#2E9E5B] bg-[#E9F5EC]'
       : 'border-[#cbd5e1] text-[#64748b] bg-[#f8fafc]'
   return (
     <div className={`mt-3.5 rounded-[10px] border-l-[3px] px-3.5 py-2.5 text-[13px] leading-relaxed ${cls}`}>
@@ -585,18 +585,18 @@ function ResultBox({ label, value, sub, highlight, good, badge }: {
 }) {
   return (
     <div className={`rounded-2xl border px-4 py-3.5 transition-transform hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] ${
-      highlight ? 'bg-gradient-to-b from-[#eef2ff] to-[#e0e7ff] border-[#c7d2fe]' : 'bg-gradient-to-b from-[#fbfcfe] to-[#f5f7fb] border-[#eaeef5]'
+      highlight ? 'bg-gradient-to-b from-[#E9F5EC] to-[#DDEFE3] border-[#CBE8D6]' : 'bg-gradient-to-b from-[#fbfcfe] to-[#f5f7fb] border-[#eaeef5]'
     }`}>
       <div className="text-[10px] font-bold tracking-[0.7px] uppercase text-[#64748b] flex items-center gap-1.5 flex-wrap">
         {label}
         {badge && (
           <span className={`text-[9.5px] font-bold tracking-[0.5px] uppercase px-[7px] py-0.5 rounded-full ${
-            badge.tone === 'tax' ? 'bg-[#fee2e2] text-[#b91c1c]' : 'bg-[#dcfce7] text-[#15803d]'
+            badge.tone === 'tax' ? 'bg-[#FDEAEA] text-[#C13A3E]' : 'bg-[#DFF2E3] text-[#2E7D4F]'
           }`}>{badge.text}</span>
         )}
       </div>
       <div className={`text-[21px] font-extrabold tabular-nums tracking-tight mt-1 ${
-        good === true ? 'text-[#059669]' : good === false ? 'text-[#dc2626]' : 'text-[#0f172a]'
+        good === true ? 'text-[#2E9E5B]' : good === false ? 'text-[#E5484D]' : 'text-[#0f172a]'
       }`}>{value}</div>
       {sub && <div className="text-[11.5px] text-[#94a3b8] font-medium mt-0.5">{sub}</div>}
     </div>

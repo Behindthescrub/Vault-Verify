@@ -76,13 +76,13 @@ export function ChecklistsPanel({ version }: Props) {
       {/* Header */}
       <div className="px-6 sm:px-7 py-5 border-b border-[#eef1f6] bg-gradient-to-b from-[#fbfcfe] to-[#f5f7fb]">
         <div className="flex items-start gap-3 flex-wrap">
-          <div className="w-11 h-11 rounded-2xl bg-[#eef2ff] border border-[#c7d2fe] flex items-center justify-center text-[#4f46e5] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#E9F5EC] border border-[#CBE8D6] flex items-center justify-center text-[#1F7A44] shrink-0">
             <ClipboardList className="w-5.5 h-5.5" />
           </div>
           <div className="flex-1 min-w-[220px]">
             <h2 className="text-[17px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2">
               Skill checklist data
-              <span className="text-[11px] font-bold bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe] px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold bg-[#E9F5EC] text-[#1E6B3C] border border-[#CBE8D6] px-2 py-0.5 rounded-full">
                 {rows.length} total
               </span>
             </h2>
@@ -103,7 +103,7 @@ export function ChecklistsPanel({ version }: Props) {
             {STATUS_TABS.map((t) => (
               <button key={t.key} type="button" onClick={() => setStatus(t.key)}
                 className={`h-7 px-3 rounded-lg text-[12px] font-bold cursor-pointer transition-colors ${
-                  status === t.key ? 'bg-[#4f46e5] text-white' : 'text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#334155]'
+                  status === t.key ? 'bg-[#1F7A44] text-white' : 'text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#334155]'
                 }`}>
                 {t.label}
               </button>
@@ -119,7 +119,7 @@ export function ChecklistsPanel({ version }: Props) {
 
       {/* Rows */}
       {error ? (
-        <div className="px-6 py-6 text-[13px] font-semibold text-[#dc2626]">{error}</div>
+        <div className="px-6 py-6 text-[13px] font-semibold text-[#E5484D]">{error}</div>
       ) : loading ? (
         <div className="py-14 flex justify-center text-[#94a3b8]"><Loader2 className="w-6 h-6 animate-spin" /></div>
       ) : filtered.length === 0 ? (
@@ -147,8 +147,8 @@ export function ChecklistsPanel({ version }: Props) {
                 {r.templateLabel}
               </span>
               <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
-                r.status === 'submitted' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-                  : r.status === 'sent' ? 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]'
+                r.status === 'submitted' ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+                  : r.status === 'sent' ? 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]'
                     : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'
               }`}>
                 {r.status === 'submitted' ? 'Completed' : r.status === 'sent' ? 'Awaiting' : 'Draft'}
@@ -178,11 +178,11 @@ export function ChecklistsPanel({ version }: Props) {
           ) : (
             <>
               <DialogHeader className="px-6 pt-6 pb-4 text-left border-b border-[#eef1f6]"
-                style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.3), transparent 60%), linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
+                style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(46,158,91,0.3), transparent 60%), linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}>
                 <DialogTitle className="text-white text-[19px] font-extrabold tracking-tight leading-snug">
                   {detail.title}
                 </DialogTitle>
-                <DialogDescription className="text-[12.5px] text-[#a8b8d8] mt-1">
+                <DialogDescription className="text-[12.5px] text-[#A8CFB8] mt-1">
                   {detail.templateLabel}
                   {detail.candidateName ? ` · ${detail.candidateName}` : ''}
                   {detail.candidateEmail ? ` · ${detail.candidateEmail}` : ''}
@@ -190,14 +190,14 @@ export function ChecklistsPanel({ version }: Props) {
                 <div className="flex items-center gap-4 flex-wrap mt-3">
                   {detail.avgRating != null && (
                     <div className="text-center bg-white/10 border border-white/15 rounded-2xl px-4 py-2">
-                      <div className="text-[9.5px] font-bold uppercase tracking-[0.7px] text-[#a8b8d8]">Average</div>
+                      <div className="text-[9.5px] font-bold uppercase tracking-[0.7px] text-[#A8CFB8]">Average</div>
                       <div className="text-[22px] font-extrabold text-white tabular-nums leading-none mt-0.5">
                         {detail.avgRating.toFixed(1)}
                       </div>
-                      <div className="text-[9.5px] text-[#a8b8d8] mt-0.5">of 4</div>
+                      <div className="text-[9.5px] text-[#A8CFB8] mt-0.5">of 4</div>
                     </div>
                   )}
-                  <div className="text-[12px] text-[#a8b8d8]">
+                  <div className="text-[12px] text-[#A8CFB8]">
                     <div>Owner: <strong className="text-white font-bold">{detail.ownerEmail}</strong></div>
                     <div className="mt-0.5">
                       {detail.status === 'submitted'

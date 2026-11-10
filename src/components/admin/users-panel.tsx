@@ -30,7 +30,7 @@ export function UsersPanel({ version }: Props) {
   }
   if (error) {
     return (
-      <div className="text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">
+      <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">
         {error}
       </div>
     )
@@ -41,7 +41,7 @@ export function UsersPanel({ version }: Props) {
       {/* Accounts */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-          <Users className="w-4 h-4 text-[#4f46e5]" /> Accounts ({users.length})
+          <Users className="w-4 h-4 text-[#1F7A44]" /> Accounts ({users.length})
         </h2>
         <div className="rounded-2xl border border-[#eef1f6] divide-y divide-[#eef1f6] overflow-hidden">
           {users.map((u) => (
@@ -55,13 +55,13 @@ export function UsersPanel({ version }: Props) {
                 </div>
               </div>
               {u.role === 'superadmin' && (
-                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-[#0a1628] text-white">
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-[#0A2B23] text-white">
                   admin
                 </span>
               )}
               <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${
                 u.activeSessions > 0
-                  ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
+                  ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
                   : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#94a3b8]'
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${u.activeSessions > 0 ? 'bg-[#22c55e]' : 'bg-[#cbd5e1]'}`} />
@@ -79,7 +79,7 @@ export function UsersPanel({ version }: Props) {
       {/* Saved calculator runs */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-          <Calculator className="w-4 h-4 text-[#4f46e5]" /> Saved calculator runs ({calcs.length})
+          <Calculator className="w-4 h-4 text-[#1F7A44]" /> Saved calculator runs ({calcs.length})
         </h2>
         {calcs.length === 0 ? (
           <div className="text-[13px] text-[#94a3b8] py-4 text-center">No saved bill-to-pay runs yet.</div>
@@ -94,7 +94,7 @@ export function UsersPanel({ version }: Props) {
                   </div>
                 </div>
                 {c.billRate != null && (
-                  <span className="text-[12.5px] font-bold tabular-nums text-[#4f46e5]">
+                  <span className="text-[12.5px] font-bold tabular-nums text-[#1F7A44]">
                     ${c.billRate.toFixed(2)}/hr
                   </span>
                 )}

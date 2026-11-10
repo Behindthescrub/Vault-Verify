@@ -87,7 +87,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
     return (
       <div className="max-w-[1100px] mx-auto">
         <Button variant="ghost" onClick={onBack} className="mb-4 gap-1.5"><ArrowLeft className="w-4 h-4" /> Back</Button>
-        <div className="text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">{error}</div>
+        <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">{error}</div>
       </div>
     )
   }
@@ -100,11 +100,11 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
       <Button variant="ghost" onClick={onBack} className="mb-4 gap-1.5 h-9 text-[13px]"><ArrowLeft className="w-4 h-4" /> Back</Button>
 
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] overflow-hidden">
-        <div className="px-6 sm:px-8 py-5 text-white" style={{ background: 'linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
+        <div className="px-6 sm:px-8 py-5 text-white" style={{ background: 'linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}>
           <h1 className="text-[19px] font-extrabold tracking-tight flex items-center gap-2.5 m-0">
             <UserPen className="w-5 h-5" /> Manual entry — {data.title}
           </h1>
-          <p className="text-[12.5px] text-[#a8b8d8] m-0 mt-0.5">
+          <p className="text-[12.5px] text-[#A8CFB8] m-0 mt-0.5">
             Record the candidate&apos;s self-reported ratings. Everything saves to their checklist record.
           </p>
         </div>
@@ -116,7 +116,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
             <span className="tabular-nums">{progress}%</span>
           </div>
           <div className="h-2 rounded-full bg-[#e2e7f0] overflow-hidden">
-            <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#818cf8,#4f46e5)' }} />
+            <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#7BC894,#1F7A44)' }} />
           </div>
           <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -177,7 +177,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
                                   disabled={ratings[s.name] === 'na' && o.value !== 'na'}
                                   onClick={() => setLastPerformed((lp) => ({ ...lp, [s.name]: o.value }))}
                                   className={`h-6.5 px-2 rounded-lg border text-[10.5px] font-bold cursor-pointer transition-colors whitespace-nowrap ${
-                                    selected ? 'bg-[#eef2ff] border-[#a5b4fc] text-[#4338ca]' : 'bg-white border-[#dfe5ee] text-[#64748b] hover:border-[#b8c2d4]'
+                                    selected ? 'bg-[#E9F5EC] border-[#9DDBB6] text-[#1E6B3C]' : 'bg-white border-[#dfe5ee] text-[#64748b] hover:border-[#b8c2d4]'
                                   } ${ratings[s.name] === 'na' && o.value !== 'na' ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                   {o.value === 'na' ? 'N/A' : o.label.replace('Within ', '').replace(' ago', '')}
                                 </button>
@@ -217,7 +217,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
                                 onClick={() => setAnswers((a) => ({ ...a, [q.id]: selected && a[q.id] === v ? '' : v }))}
                                 className={`h-7 px-3 rounded-lg border text-[11.5px] font-bold cursor-pointer transition-colors ${
                                   selected
-                                    ? v === 'yes' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+                                    ? v === 'yes' ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]' : 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
                                     : 'bg-white border-[#d8dee9] text-[#64748b] hover:border-[#b8c2d4]'
                                 }`}>
                                 {v === 'yes' ? 'Yes' : 'No'}
@@ -249,9 +249,9 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
         <div className="px-6 sm:px-8 py-4 border-t border-[#eef1f6] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-3 sticky bottom-0">
           <div className="text-[12px] text-[#94a3b8]">Unanswered skills are rejected on save — answer them all (N/A counts).</div>
           <div className="flex items-center gap-2">
-            {error && <span className="text-[12.5px] font-semibold text-[#dc2626]">{error}</span>}
+            {error && <span className="text-[12.5px] font-semibold text-[#E5484D]">{error}</span>}
             <Button onClick={save} disabled={busy || answeredCount < allSkills.length} className="font-bold gap-2"
-              style={{ background: 'linear-gradient(180deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
+              style={{ background: 'linear-gradient(180deg,#34A853,#2E9E5B)', boxShadow: '0 4px 14px rgba(5,150,105,0.30)' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Save ratings
             </Button>

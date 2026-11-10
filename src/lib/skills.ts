@@ -110,7 +110,7 @@ export async function buildTemplateSnapshot(templateId: string): Promise<{
 } | null> {
   const t = await db.skillTemplate.findUnique({
     where: { id: templateId },
-    include: { skills: { orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }] } },
+    include: { skills: { orderBy: [{ categorySort: 'asc' }, { sortOrder: 'asc' }] } },
   })
   if (!t) return null
   const byCat = new Map<string, SnapshotSkill[]>()
@@ -360,7 +360,7 @@ export function buildSkillsDataXlsx(): Promise<Buffer> {
   return (async () => {
     const templates = await db.skillTemplate.findMany({
       orderBy: [{ profession: 'asc' }, { jobTitle: 'asc' }, { specialty: 'asc' }],
-      include: { skills: { orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }] } },
+      include: { skills: { orderBy: [{ categorySort: 'asc' }, { sortOrder: 'asc' }] } },
     })
     const aoa: (string | number | boolean)[][] = [SKILLS_SHEET_HEADERS]
     for (const t of templates) {

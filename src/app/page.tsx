@@ -74,7 +74,7 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background: 'linear-gradient(180deg,#f6f8fc, #eef2f9)' }}>
-        <div className="w-6 h-6 border-2 border-[#c7d2fe] border-t-[#4f46e5] rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#CBE8D6] border-t-[#1F7A44] rounded-full animate-spin" />
       </div>
     )
   }

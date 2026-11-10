@@ -40,8 +40,8 @@ export function RatingPills({ value, onChange, hasNa = false, questionType = 'ra
         {opts.map((o) => {
           const selected = value === o.v
           const tone = o.v === 'yes'
-            ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-            : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+            ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+            : 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
           return (
             <button key={o.v} type="button" role="radio" aria-checked={selected}
               onClick={() => onChange(o.v)}
@@ -97,11 +97,11 @@ function NaButton({ value, onChange, h, text }: {
 
 function ratingTone(n: number): { selected: string } {
   switch (n) {
-    case 1: return { selected: 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]' }
-    case 2: return { selected: 'bg-[#fef3c7] border-[#fcd34d] text-[#b45309]' }
-    case 3: return { selected: 'bg-[#dbeafe] border-[#93c5fd] text-[#1d4ed8]' }
-    case 4: return { selected: 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' }
-    default: return { selected: 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]' }
+    case 1: return { selected: 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]' }
+    case 2: return { selected: 'bg-[#FDF1DC] border-[#F3D9A6] text-[#9A6200]' }
+    case 3: return { selected: 'bg-[#E3EDFB] border-[#B9D0F5] text-[#2F6BC4]' }
+    case 4: return { selected: 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]' }
+    default: return { selected: 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]' }
   }
 }
 
@@ -119,7 +119,7 @@ export function RatingBadge({ value, questionType = 'rating_1_4' }: {
   if (questionType === 'yes_no') {
     return (
       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md border ${
-        value === 'yes' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' : 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
+        value === 'yes' ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]' : 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
       }`}>{value === 'yes' ? 'Yes' : 'No'}</span>
     )
   }
@@ -136,29 +136,29 @@ export function RatingBadge({ value, questionType = 'rating_1_4' }: {
 
 function badgeTone(n: number): string {
   switch (n) {
-    case 1: return 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]'
-    case 2: return 'bg-[#fef3c7] border-[#fcd34d] text-[#b45309]'
-    case 3: return 'bg-[#dbeafe] border-[#93c5fd] text-[#1d4ed8]'
-    case 4: return 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-    default: return 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]'
+    case 1: return 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]'
+    case 2: return 'bg-[#FDF1DC] border-[#F3D9A6] text-[#9A6200]'
+    case 3: return 'bg-[#E3EDFB] border-[#B9D0F5] text-[#2F6BC4]'
+    case 4: return 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+    default: return 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]'
   }
 }
 
 // Color helper for big average numbers (1–4 scale).
 export function ratingColor(value: number): string {
-  if (value < 2) return 'text-[#dc2626]'
-  if (value < 3) return 'text-[#d97706]'
-  if (value < 3.5) return 'text-[#2563eb]'
-  return 'text-[#059669]'
+  if (value < 2) return 'text-[#E5484D]'
+  if (value < 3) return 'text-[#C77F0A]'
+  if (value < 3.5) return 'text-[#2F6BC4]'
+  return 'text-[#2E9E5B]'
 }
 
 // Big 1–4 scale legend block (candidate-facing).
 export function ScaleLegend({ compact = false }: { compact?: boolean }) {
   const levels = [
-    { value: 1, label: 'No theory / experience', desc: 'Have not performed this skill', cls: 'bg-[#fee2e2] border-[#fca5a5] text-[#b91c1c]' },
-    { value: 2, label: 'Limited', desc: 'Performed only with direct oversight', cls: 'bg-[#fef3c7] border-[#fcd34d] text-[#b45309]' },
-    { value: 3, label: 'Experienced', desc: 'Independent with occasional guidance', cls: 'bg-[#dbeafe] border-[#93c5fd] text-[#1d4ed8]' },
-    { value: 4, label: 'Proficient', desc: 'Fully independent, complex cases included', cls: 'bg-[#dcfce7] border-[#86efac] text-[#15803d]' },
+    { value: 1, label: 'No theory / experience', desc: 'Have not performed this skill', cls: 'bg-[#FDEAEA] border-[#F3B8BA] text-[#C13A3E]' },
+    { value: 2, label: 'Limited', desc: 'Performed only with direct oversight', cls: 'bg-[#FDF1DC] border-[#F3D9A6] text-[#9A6200]' },
+    { value: 3, label: 'Experienced', desc: 'Independent with occasional guidance', cls: 'bg-[#E3EDFB] border-[#B9D0F5] text-[#2F6BC4]' },
+    { value: 4, label: 'Proficient', desc: 'Fully independent, complex cases included', cls: 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]' },
   ]
   if (compact) {
     return (

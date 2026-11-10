@@ -29,8 +29,8 @@ export default function SuperadminPage() {
   if (!booted) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(160deg,#0a1628 0%, #1a2a6c 100%)' }}>
-        <div className="w-6 h-6 border-2 border-[#c7d2fe]/40 border-t-[#818cf8] rounded-full animate-spin" />
+        style={{ background: 'linear-gradient(160deg,#0A2B23 0%, #0E3B32 100%)' }}>
+        <div className="w-6 h-6 border-2 border-[#CBE8D6]/40 border-t-[#7BC894] rounded-full animate-spin" />
       </div>
     )
   }
@@ -44,19 +44,19 @@ export default function SuperadminPage() {
   if (user.role !== 'superadmin') {
     return (
       <div className="min-h-screen flex items-center justify-center px-4"
-        style={{ background: 'linear-gradient(160deg,#0a1628 0%, #1a2a6c 100%)' }}>
+        style={{ background: 'linear-gradient(160deg,#0A2B23 0%, #0E3B32 100%)' }}>
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-xl px-8 py-9 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-[#7f1d1d]/50 border border-[#ef4444]/30 flex items-center justify-center text-[#fca5a5]">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-[#7f1d1d]/50 border border-[#ef4444]/30 flex items-center justify-center text-[#F3B8BA]">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <h1 className="mt-5 text-[20px] font-extrabold text-white">Access restricted</h1>
-          <p className="mt-2 text-[13px] text-[#a8b8d8] leading-relaxed">
+          <p className="mt-2 text-[13px] text-[#A8CFB8] leading-relaxed">
             You are signed in as <span className="text-white font-semibold">{user.email}</span>, which is not a
             superadmin account. This console is reserved for platform administrators.
           </p>
           <div className="mt-7 flex flex-col sm:flex-row gap-2.5 justify-center">
             <a href="/"
-              className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-xl text-[13.5px] font-bold text-white bg-[#4f46e5] hover:bg-[#4338ca] transition-colors">
+              className="h-11 px-5 inline-flex items-center justify-center gap-2 rounded-xl text-[13.5px] font-bold text-white bg-[#1F7A44] hover:bg-[#1E6B3C] transition-colors">
               <Calculator className="w-4 h-4" /> Recruiter tool
             </a>
             <button onClick={onLogout}
@@ -73,22 +73,22 @@ export default function SuperadminPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg,#f6f8fc, #eef2f9)' }}>
       <header className="sticky top-0 z-40"
-        style={{ background: 'linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}>
+        style={{ background: 'linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}>
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
           <div className="h-14 flex items-center gap-3">
             <div className="flex items-center gap-2.5 shrink-0">
-              <div className="w-8 h-8 rounded-xl bg-[#4f46e5]/40 border border-[#818cf8]/40 flex items-center justify-center text-[#c7d2fe]">
+              <div className="w-8 h-8 rounded-xl bg-[#1F7A44]/40 border border-[#7BC894]/40 flex items-center justify-center text-[#CBE8D6]">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <span className="text-white font-extrabold text-[15px] tracking-tight">
-                Superadmin <span className="hidden sm:inline text-[#a8b8d8] font-bold">· Recruiter tool</span>
+                Superadmin <span className="hidden sm:inline text-[#A8CFB8] font-bold">· Recruiter tool</span>
               </span>
             </div>
 
             <div className="flex-1" />
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[12px] text-[#a8b8d8] font-medium hidden md:block max-w-[200px] truncate">
+              <span className="text-[12px] text-[#A8CFB8] font-medium hidden md:block max-w-[200px] truncate">
                 {user.email}
               </span>
               <a href="/" title="Open the recruiter app"

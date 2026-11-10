@@ -35,9 +35,9 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const html = `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
-        <div style="background:linear-gradient(135deg,#0a1628,#1a2a6c);border-radius:14px 14px 0 0;padding:22px 26px;color:#fff">
+        <div style="background:linear-gradient(135deg,#0A2B23,#0E3B32);border-radius:14px 14px 0 0;padding:22px 26px;color:#fff">
           <h2 style="margin:0;font-size:18px">Skills Checklist Invitation</h2>
-          <p style="margin:6px 0 0;color:#a8b8d8;font-size:13px">from ${escapeHtml(recruiterName)}</p>
+          <p style="margin:6px 0 0;color:#A8CFB8;font-size:13px">from ${escapeHtml(recruiterName)}</p>
         </div>
         <div style="border:1px solid #e2e8f0;border-top:0;border-radius:0 0 14px 14px;padding:26px">
           <p style="font-size:15px">Hello${c.candidateName ? ' ' + escapeHtml(c.candidateName) : ''},</p>
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: Params) {
             It takes about 10–15 minutes — you'll rate each skill from 1 (no experience) to 5 (expert).
           </p>
           <p style="text-align:center;margin:28px 0">
-            <a href="${link}" style="background:#4f46e5;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;display:inline-block">Open the checklist</a>
+            <a href="${link}" style="background:#1F7A44;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;display:inline-block">Open the checklist</a>
           </p>
           <p style="font-size:12px;color:#94a3b8;border-top:1px solid #eef1f6;padding-top:14px">
             If the button doesn't work, paste this link into your browser:<br>${link}

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     const template = await db.skillTemplate.findUnique({
       where: { id: templateId },
-      include: { skills: { orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }] } },
+      include: { skills: { orderBy: [{ categorySort: 'asc' }, { sortOrder: 'asc' }] } },
     })
     if (!template || !template.isActive) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 })

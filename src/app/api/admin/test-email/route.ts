@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       subject: 'Recruiter tool — test email',
       html: `
         <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;color:#0f172a">
-          <div style="background:linear-gradient(135deg,#0a1628,#1a2a6c);border-radius:14px 14px 0 0;padding:20px 24px;color:#fff">
+          <div style="background:linear-gradient(135deg,#0A2B23,#0E3B32);border-radius:14px 14px 0 0;padding:20px 24px;color:#fff">
             <h2 style="margin:0;font-size:17px">✅ Brevo is wired up</h2>
           </div>
           <div style="border:1px solid #e2e8f0;border-top:0;border-radius:0 0 14px 14px;padding:22px;font-size:14px;color:#475569">

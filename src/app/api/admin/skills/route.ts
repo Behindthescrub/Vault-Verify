@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   if (templateId) {
     const template = await db.skillTemplate.findUnique({
       where: { id: templateId },
-      include: { skills: { orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }] } },
+      include: { skills: { orderBy: [{ categorySort: 'asc' }, { sortOrder: 'asc' }] } },
     })
     if (!template) return NextResponse.json({ error: 'Template not found' }, { status: 404 })
     return NextResponse.json({
@@ -107,8 +107,22 @@ export async function POST(req: NextRequest) {
       orderBy: { sortOrder: 'desc' },
       select: { sortOrder: true },
     })
+    // keep the category's existing position, or append it as a new category
+    const catRow = await db.skill.findFirst({
+      where: { templateId, category: { equals: category } },
+      select: { categorySort: true },
+    })
+    let categorySort = catRow?.categorySort
+    if (categorySort == null) {
+      const maxCat = await db.skill.findFirst({
+        where: { templateId },
+        orderBy: { categorySort: 'desc' },
+        select: { categorySort: true },
+      })
+      categorySort = (maxCat?.categorySort ?? -1) + 1
+    }
     const skill = await db.skill.create({
-      data: { templateId, skillName, category, questionType, hasNaOption, sortOrder: (maxSort?.sortOrder ?? -1) + 1 },
+      data: { templateId, skillName, category, questionType, hasNaOption, sortOrder: (maxSort?.sortOrder ?? -1) + 1, categorySort },
     })
     return NextResponse.json({ skill: { id: skill.id } })
   } catch {

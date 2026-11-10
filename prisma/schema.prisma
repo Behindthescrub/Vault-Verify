@@ -82,14 +82,15 @@ model SkillTemplate {
 }
 
 model Skill {
-  id           String        @id @default(cuid())
-  templateId   String
-  template     SkillTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  skillName    String
-  category     String
-  questionType String        @default("rating_1_4") // rating_1_4 | yes_no | text
-  sortOrder    Int           @default(0)
-  hasNaOption  Boolean       @default(false)
+  id            String        @id @default(cuid())
+  templateId    String
+  template      SkillTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  skillName     String
+  category      String
+  questionType  String        @default("rating_1_4") // rating_1_4 | yes_no | text
+  sortOrder     Int           @default(0) // order within the category
+  categorySort  Int           @default(0) // order of the category within the template (natural/xlsx order)
+  hasNaOption   Boolean       @default(false)
 
   @@index([templateId, category, sortOrder])
 }

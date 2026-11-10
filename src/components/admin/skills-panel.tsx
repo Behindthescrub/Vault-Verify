@@ -338,7 +338,7 @@ export function SkillsPanel() {
       {/* Header */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-7 py-5">
         <div className="flex items-start gap-3 flex-wrap">
-          <div className="w-11 h-11 rounded-2xl bg-[#eef2ff] border border-[#c7d2fe] flex items-center justify-center text-[#4f46e5] shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#E9F5EC] border border-[#CBE8D6] flex items-center justify-center text-[#1F7A44] shrink-0">
             <Database className="w-5.5 h-5.5" />
           </div>
           <div className="flex-1 min-w-[220px]">
@@ -355,18 +355,18 @@ export function SkillsPanel() {
             <Button variant="outline" size="sm" className="h-9 gap-1.5 font-bold" onClick={() => window.open('/api/admin/skills/export-data', '_blank')}>
               <Download className="w-3.5 h-3.5" /> Export
             </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 font-bold border-[#fca5a5] text-[#dc2626] hover:bg-[#fef2f2]" onClick={deleteAll}>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 font-bold border-[#F3B8BA] text-[#E5484D] hover:bg-[#FDEEEE]" onClick={deleteAll}>
               <Trash2 className="w-3.5 h-3.5" /> Delete all
             </Button>
           </div>
         </div>
         {(msg || errMsg) && (
           <div className={`mt-3.5 text-[12.5px] font-semibold border-l-[3px] rounded-md px-3.5 py-2.5 ${
-            msg ? 'text-[#059669] bg-[#ecfdf5] border-[#10b981]' : 'text-[#dc2626] bg-[#fef2f2] border-[#dc2626]'
+            msg ? 'text-[#2E9E5B] bg-[#E9F5EC] border-[#34A853]' : 'text-[#E5484D] bg-[#FDEEEE] border-[#E5484D]'
           }`}>{msg || errMsg}</div>
         )}
         {error && (
-          <div className="mt-3.5 text-[12.5px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">{error}</div>
+          <div className="mt-3.5 text-[12.5px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">{error}</div>
         )}
       </div>
 
@@ -394,7 +394,7 @@ export function SkillsPanel() {
                   <button type="button"
                     onClick={() => { setSelProfession(open ? '' : p); setSelJobTitle(''); setSelTemplateId(null); setSearch('') }}
                     className={`w-full flex items-center gap-2 px-4 py-3 text-left cursor-pointer transition-colors ${
-                      open ? 'bg-[#eef2ff]' : 'hover:bg-[#f8fafc]'
+                      open ? 'bg-[#E9F5EC]' : 'hover:bg-[#f8fafc]'
                     }`}>
                     <ChevronRight className={`w-3.5 h-3.5 text-[#94a3b8] transition-transform ${open ? 'rotate-90' : ''}`} />
                     <span className="text-[13.5px] font-bold text-[#0f172a] flex-1">{p}</span>
@@ -409,7 +409,7 @@ export function SkillsPanel() {
                         <button key={jt} type="button"
                           onClick={() => { setSelJobTitle(jt); setSelTemplateId(null) }}
                           className={`w-full flex items-center gap-2 pl-9 pr-4 py-2 text-left cursor-pointer transition-colors ${
-                            selJobTitle === jt ? 'bg-[#e0e7ff]' : 'hover:bg-[#f8fafc]'
+                            selJobTitle === jt ? 'bg-[#DDEFE3]' : 'hover:bg-[#f8fafc]'
                           }`}>
                           <span className={`text-[12.5px] font-semibold flex-1 truncate ${selJobTitle === jt ? 'text-[#3730a3]' : 'text-[#334155]'}`}>{jt}</span>
                           <span className="text-[10.5px] font-bold text-[#94a3b8]">{count.toLocaleString()} skills</span>
@@ -427,7 +427,7 @@ export function SkillsPanel() {
         <div className="flex-1 min-w-[280px] rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] overflow-hidden">
           {!selProfession || !selJobTitle ? (
             <div className="px-6 py-16 text-center">
-              <Database className="w-10 h-10 mx-auto text-[#c7d2fe] mb-3" />
+              <Database className="w-10 h-10 mx-auto text-[#CBE8D6] mb-3" />
               <h3 className="text-[15px] font-bold text-[#334155]">Select a job title</h3>
               <p className="text-[12.5px] text-[#94a3b8] mt-1 max-w-sm mx-auto">
                 Choose a profession and job title from the left panel to view specialties and skills.
@@ -454,11 +454,11 @@ export function SkillsPanel() {
                       onClick={() => { setRenameDialog({ field: 'profession', from: selProfession }); setRenameTo(selProfession) }}>
                       <Pencil className="w-3.5 h-3.5" /> Rename profession
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px] font-bold border-[#fca5a5] text-[#dc2626] hover:bg-[#fef2f2]"
+                    <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px] font-bold border-[#F3B8BA] text-[#E5484D] hover:bg-[#FDEEEE]"
                       onClick={() => deleteGroup('jobTitle', selJobTitle, specialties.length)}>
                       <Trash2 className="w-3.5 h-3.5" /> Delete job title
                     </Button>
-                    <Button size="sm" className="h-8 gap-1.5 text-[12px] font-bold" style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}
+                    <Button size="sm" className="h-8 gap-1.5 text-[12px] font-bold" style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}
                       onClick={openTemplateDialog}>
                       <Plus className="w-3.5 h-3.5" /> Add specialty
                     </Button>
@@ -472,8 +472,8 @@ export function SkillsPanel() {
                       onClick={() => setSelTemplateId(t.id === selTemplateId ? null : t.id)}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-all border ${
                         selTemplateId === t.id
-                          ? 'bg-[#e0e7ff] text-[#3730a3] border-[#a5b4fc]'
-                          : 'bg-white text-[#334155] border-[#e2e8f0] hover:border-[#a5b4fc] hover:bg-[#eef2ff]'
+                          ? 'bg-[#DDEFE3] text-[#3730a3] border-[#9DDBB6]'
+                          : 'bg-white text-[#334155] border-[#e2e8f0] hover:border-[#9DDBB6] hover:bg-[#E9F5EC]'
                       }`}>
                       <span className="text-[12.5px] font-bold">{t.specialty}</span>
                       <span className="text-[10px] font-bold bg-[#f1f5f9] border border-[#e2e8f0] rounded-full px-1.5 py-0.5 text-[#64748b]">{t.skillCount}</span>
@@ -505,7 +505,7 @@ export function SkillsPanel() {
                         onClick={() => openAddSkill()}>
                         <Plus className="w-3.5 h-3.5" /> Add skill
                       </Button>
-                      <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px] font-bold border-[#fca5a5] text-[#dc2626] hover:bg-[#fef2f2]"
+                      <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[12px] font-bold border-[#F3B8BA] text-[#E5484D] hover:bg-[#FDEEEE]"
                         onClick={async () => {
                           if (!confirm(`Delete the "${selTemplate?.specialty}" specialty template and its ${skills.length} skills?`)) return
                           try {
@@ -526,7 +526,7 @@ export function SkillsPanel() {
                       <div key={cat} className="p-4">
                         <div className="flex items-center justify-between mb-2.5">
                           <div className="font-bold text-[12px] text-[#334155] uppercase tracking-wide">{cat}</div>
-                          <button type="button" className="text-[11px] font-bold text-[#4f46e5] cursor-pointer"
+                          <button type="button" className="text-[11px] font-bold text-[#1F7A44] cursor-pointer"
                             onClick={() => openAddSkill(cat)}>
                             + add here
                           </button>
@@ -545,11 +545,11 @@ export function SkillsPanel() {
                               )}
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button type="button" title="Edit skill" onClick={() => openEditSkill(s)}
-                                  className="w-6 h-6 rounded-md flex items-center justify-center text-[#64748b] hover:bg-[#eef2ff] hover:text-[#4f46e5] cursor-pointer">
+                                  className="w-6 h-6 rounded-md flex items-center justify-center text-[#64748b] hover:bg-[#E9F5EC] hover:text-[#1F7A44] cursor-pointer">
                                   <Pencil className="w-3 h-3" />
                                 </button>
                                 <button type="button" title="Delete skill" onClick={() => deleteSkill(s)}
-                                  className="w-6 h-6 rounded-md flex items-center justify-center text-[#64748b] hover:bg-[#fef2f2] hover:text-[#dc2626] cursor-pointer">
+                                  className="w-6 h-6 rounded-md flex items-center justify-center text-[#64748b] hover:bg-[#FDEEEE] hover:text-[#E5484D] cursor-pointer">
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>
@@ -579,20 +579,20 @@ export function SkillsPanel() {
 
           {importResult ? (
             <div className="space-y-3 py-2">
-              <div className="flex items-center gap-2.5 text-[14px] font-bold text-[#059669] bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2.5 text-[14px] font-bold text-[#2E9E5B] bg-[#E9F5EC] border border-[#a7f3d0] rounded-xl px-4 py-3">
                 <Check className="w-5 h-5" /> Import complete
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-[#eaeef5] px-4 py-3 text-center">
-                  <p className="text-[24px] font-extrabold text-[#059669] tabular-nums">{importResult.imported}</p>
+                  <p className="text-[24px] font-extrabold text-[#2E9E5B] tabular-nums">{importResult.imported}</p>
                   <p className="text-[11px] text-[#94a3b8] font-bold uppercase tracking-wide">imported</p>
                 </div>
                 <div className="rounded-2xl border border-[#eaeef5] px-4 py-3 text-center">
-                  <p className="text-[24px] font-extrabold text-[#d97706] tabular-nums">{importResult.skipped}</p>
+                  <p className="text-[24px] font-extrabold text-[#C77F0A] tabular-nums">{importResult.skipped}</p>
                   <p className="text-[11px] text-[#94a3b8] font-bold uppercase tracking-wide">skipped (duplicates)</p>
                 </div>
               </div>
-              <Button className="w-full font-bold" style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }} onClick={() => { setImportOpen(false); resetImport() }}>
+              <Button className="w-full font-bold" style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }} onClick={() => { setImportOpen(false); resetImport() }}>
                 Done
               </Button>
             </div>
@@ -603,7 +603,7 @@ export function SkillsPanel() {
                 <div className="flex items-center gap-3 flex-wrap">
                   <input ref={fileRef} type="file" accept=".xlsx"
                     onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setValidation(null) }}
-                    className="flex-1 min-w-[200px] text-[13px] rounded-xl border border-[#d8dee9] px-3 py-2.5 file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef2ff] file:text-[#4338ca] file:font-bold file:px-3 file:py-1.5 file:cursor-pointer cursor-pointer" />
+                    className="flex-1 min-w-[200px] text-[13px] rounded-xl border border-[#d8dee9] px-3 py-2.5 file:mr-3 file:rounded-lg file:border-0 file:bg-[#E9F5EC] file:text-[#1E6B3C] file:font-bold file:px-3 file:py-1.5 file:cursor-pointer cursor-pointer" />
                   <Button variant="outline" size="sm" className="h-9 gap-1.5 font-bold"
                     onClick={() => window.open('/api/admin/skills/export-template', '_blank')}>
                     <FileSpreadsheet className="w-4 h-4" /> Download template
@@ -614,7 +614,7 @@ export function SkillsPanel() {
                 )}
               </div>
               <Button className="w-full font-bold gap-2" disabled={!importFile || validating} onClick={validateFile}
-                style={{ background: 'linear-gradient(180deg,#059669,#047857)' }}>
+                style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
                 {validating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Validate file
               </Button>
@@ -624,9 +624,9 @@ export function SkillsPanel() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
                   { v: validation.totalRows, l: 'total rows', c: 'text-[#0f172a]' },
-                  { v: validation.validRows, l: 'valid rows', c: 'text-[#059669]' },
-                  { v: validation.duplicates, l: 'duplicates', c: 'text-[#d97706]' },
-                  { v: validation.errorRows, l: 'errors', c: 'text-[#dc2626]' },
+                  { v: validation.validRows, l: 'valid rows', c: 'text-[#2E9E5B]' },
+                  { v: validation.duplicates, l: 'duplicates', c: 'text-[#C77F0A]' },
+                  { v: validation.errorRows, l: 'errors', c: 'text-[#E5484D]' },
                 ].map((s) => (
                   <div key={s.l} className="rounded-2xl border border-[#eaeef5] px-3 py-2.5 text-center">
                     <p className={`text-[22px] font-extrabold tabular-nums ${s.c}`}>{s.v.toLocaleString()}</p>
@@ -636,19 +636,19 @@ export function SkillsPanel() {
               </div>
               {validation.newTemplates > 0 && (
                 <p className="text-[12.5px] text-[#64748b]">
-                  <strong className="text-[#4f46e5]">{validation.newTemplates}</strong> new specialty template{validation.newTemplates === 1 ? '' : 's'} will be created.
+                  <strong className="text-[#1F7A44]">{validation.newTemplates}</strong> new specialty template{validation.newTemplates === 1 ? '' : 's'} will be created.
                 </p>
               )}
               {validation.errors.length > 0 && (
-                <div className="max-h-32 overflow-y-auto border border-[#fecaca] rounded-xl p-2.5 space-y-1 bg-[#fef2f2]">
+                <div className="max-h-32 overflow-y-auto border border-[#fecaca] rounded-xl p-2.5 space-y-1 bg-[#FDEEEE]">
                   {validation.errors.map((err, i) => (
-                    <p key={i} className="text-[11.5px] text-[#b91c1c]"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5" />Row {err.row}: {err.message}</p>
+                    <p key={i} className="text-[11.5px] text-[#C13A3E]"><AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5" />Row {err.row}: {err.message}</p>
                   ))}
                 </div>
               )}
               {validation.validRows > 0 && (
                 <Button className="w-full font-bold gap-2" disabled={importing} onClick={runImport}
-                  style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+                  style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
                   {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   {importing ? 'Importing…' : `Import ${validation.validRows.toLocaleString()} rows`}
                 </Button>
@@ -684,7 +684,7 @@ export function SkillsPanel() {
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Question type</Label>
               <select value={skillForm.questionType} onChange={(e) => setSkillForm((f) => ({ ...f, questionType: e.target.value }))}
-                className="w-full h-11 mt-1.5 rounded-xl border border-[#d8dee9] bg-white px-3 text-[14px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c7d2fe]">
+                className="w-full h-11 mt-1.5 rounded-xl border border-[#d8dee9] bg-white px-3 text-[14px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#CBE8D6]">
                 <option value="rating_1_4">Rating 1–4 (proficiency scale)</option>
                 <option value="yes_no">Yes / No</option>
                 <option value="text">Text answer</option>
@@ -698,7 +698,7 @@ export function SkillsPanel() {
               </div>
             </div>
             <Button className="w-full font-bold gap-2" disabled={skillBusy} onClick={saveSkill}
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
               {skillBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {skillDialog?.mode === 'edit' ? 'Save changes' : 'Add skill'}
             </Button>
@@ -730,7 +730,7 @@ export function SkillsPanel() {
                 placeholder="e.g. ICU" className="h-11 mt-1.5" maxLength={120} />
             </div>
             <Button className="w-full font-bold gap-2" disabled={tplBusy} onClick={saveTemplate}
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
               {tplBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Create specialty
             </Button>
@@ -757,7 +757,7 @@ export function SkillsPanel() {
               <Input value={renameTo} onChange={(e) => setRenameTo(e.target.value)} className="h-11 mt-1.5" maxLength={120} />
             </div>
             <Button className="w-full font-bold gap-2" disabled={renameBusy || !renameTo.trim()} onClick={runRename}
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
               {renameBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Rename
             </Button>

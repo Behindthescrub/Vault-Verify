@@ -84,8 +84,11 @@ ships as `prisma/seed-skills.xlsx` and is seeded on first run.
 
 ### The VaultVerify checklist document
 
-Every submitted checklist renders as the reference PDF (and prints to PDF via
-**Download PDF** / Ctrl+P) with exactly these parts:
+Every submitted checklist renders on-screen exactly like the reference
+document, and **Download PDF** generates a pixel-faithful PDF server-side
+(`GET /api/checklists/<id>/pdf`, pdfkit — recruiter owner or superadmin,
+submitted checklists only; filename `Skills-Checklist-<Specialty>-<Name>.pdf`).
+The document has exactly these parts:
 
 | Section | Contents |
 | --- | --- |
@@ -101,7 +104,17 @@ Every submitted checklist renders as the reference PDF (and prints to PDF via
 The candidate form collects everything above; manual entry by the recruiter
 collects ratings plus optional last-performed/experience/notes (no attestation —
 the document labels it recruiter-entered instead). Brand constants live in
-`src/lib/skills.ts` (`CHECKLIST_BRAND`).
+`src/lib/skills.ts` (`CHECKLIST_BRAND`). The PDF renderer lives in
+`src/lib/checklist-pdf.ts`; categories keep their natural (xlsx) order via
+`Skill.categorySort`.
+
+Branding: the VaultVerify logo (`public/vaultverify-logo.png`, also
+`-128.png` for app chrome) is the default logo and favicon
+(`src/app/icon.png` / `apple-icon.png`). The site palette is the VaultVerify
+green/teal combination (dark teal `#0E3B32`–`#145043`, green `#2E9E5B`,
+lime stripe `#8BC34A`, mint `#EDF6F1`). Landing-page / marketing material is
+collected in **[docs/landing-page-plan.md](./docs/landing-page-plan.md)** —
+the front page itself will be built at the end of the project.
 
 ## Deploying (GitHub → Vercel → Supabase → Brevo)
 

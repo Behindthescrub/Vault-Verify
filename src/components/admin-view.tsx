@@ -32,7 +32,7 @@ export function AdminView() {
     <div className="max-w-[1100px] mx-auto space-y-5">
       <div>
         <h1 className="text-[24px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2.5">
-          <ShieldCheck className="w-6 h-6 text-[#4f46e5]" /> Superadmin
+          <ShieldCheck className="w-6 h-6 text-[#1F7A44]" /> Superadmin
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
           Platform-wide data &amp; configuration — skills library, every checklist, account, session and calculator run on Recruiter tool.
@@ -46,7 +46,7 @@ export function AdminView() {
             aria-current={tab === t.key ? 'page' : undefined}
             className={`h-9 px-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors ${
               tab === t.key
-                ? 'bg-[#4f46e5] text-white shadow-[0_0_0_3px_rgba(79,70,229,0.2)]'
+                ? 'bg-[#1F7A44] text-white shadow-[0_0_0_3px_rgba(31,122,68,0.2)]'
                 : 'text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#334155]'
             }`}>
             {t.label}

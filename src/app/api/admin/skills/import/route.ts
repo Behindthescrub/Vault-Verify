@@ -48,9 +48,16 @@ export async function POST(req: NextRequest) {
         select: { category: true, skillName: true },
       })
       const seen = new Set(existing.map((s) => `${s.category.toLowerCase()}\u0000${s.skillName.toLowerCase()}`))
+      const existingCats = await db.skill.findMany({
+        where: { templateId: template.id },
+        select: { category: true, categorySort: true },
+        distinct: ['category'],
+      })
+      const catSort = new Map(existingCats.map((s) => [s.category, s.categorySort]))
+      let nextCat = existingCats.reduce((m, s) => Math.max(m, s.categorySort), -1) + 1
 
       const order = new Map<string, number>()
-      const toCreate: { templateId: string; skillName: string; category: string; questionType: string; sortOrder: number; hasNaOption: boolean }[] = []
+      const toCreate: { templateId: string; skillName: string; category: string; questionType: string; sortOrder: number; categorySort: number; hasNaOption: boolean }[] = []
       for (const r of grows) {
         const dedupe = `${r.category.toLowerCase()}\u0000${r.skillName.toLowerCase()}`
         if (seen.has(dedupe)) {
@@ -58,6 +65,7 @@ export async function POST(req: NextRequest) {
           continue
         }
         seen.add(dedupe)
+        if (!catSort.has(r.category)) catSort.set(r.category, nextCat++) // natural xlsx order for new categories
         const so = (order.get(r.category) ?? -1) + 1
         order.set(r.category, so)
         toCreate.push({
@@ -66,6 +74,7 @@ export async function POST(req: NextRequest) {
           category: r.category,
           questionType: r.questionType,
           sortOrder: so,
+          categorySort: catSort.get(r.category)!,
           hasNaOption: r.hasNaOption,
         })
       }

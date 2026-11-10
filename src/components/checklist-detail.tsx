@@ -17,6 +17,7 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
   const [data, setData] = useState<ChecklistDetail | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [pdfBusy, setPdfBusy] = useState(false)
 
   useEffect(() => {
     setData(null)
@@ -29,7 +30,7 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
     return (
       <div className="max-w-[1100px] mx-auto">
         <Button variant="ghost" onClick={onBack} className="mb-4 gap-1.5"><ArrowLeft className="w-4 h-4" /> Back</Button>
-        <div className="text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3.5 py-2.5">{error}</div>
+        <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2.5">{error}</div>
       </div>
     )
   }
@@ -47,6 +48,35 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
     }).catch(() => {})
   }
 
+  // Download the VaultVerify-styled PDF generated server-side
+  async function downloadPdf() {
+    if (!data || pdfBusy) return
+    setPdfBusy(true)
+    try {
+      const res = await fetch(`/api/checklists/${data.id}/pdf`)
+      if (!res.ok) {
+        const j = await res.json().catch(() => null)
+        throw new Error(j?.error ?? 'Could not generate the PDF')
+      }
+      const blob = await res.blob()
+      const disposition = res.headers.get('Content-Disposition') ?? ''
+      const m = /filename="([^"]+)"/.exec(disposition)
+      const filename = m?.[1] ?? `Skills-Checklist-${(data.candidateName ?? 'Candidate').replace(/[^A-Za-z0-9]+/g, '-')}.pdf`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Could not generate the PDF')
+    } finally {
+      setPdfBusy(false)
+    }
+  }
+
   const statusBadge =
     data.status === 'submitted' ? 'Completed' : data.status === 'sent' ? 'Awaiting candidate' : 'Draft'
 
@@ -59,12 +89,12 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
         </Button>
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border ${
-            data.status === 'submitted' ? 'bg-[#dcfce7] border-[#86efac] text-[#15803d]'
-              : data.status === 'sent' ? 'bg-[#eef2ff] border-[#c7d2fe] text-[#4338ca]'
+            data.status === 'submitted' ? 'bg-[#DFF2E3] border-[#BFE3CE] text-[#2E7D4F]'
+              : data.status === 'sent' ? 'bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]'
                 : 'bg-[#f1f5f9] border-[#e2e8f0] text-[#64748b]'
           }`}>{statusBadge}</span>
           <Button variant="ghost" className="h-9 gap-1.5 text-[13px]" onClick={copyLink}>
-            {copied ? <Copy className="w-4 h-4 text-[#059669]" /> : <Link2 className="w-4 h-4" />}
+            {copied ? <Copy className="w-4 h-4 text-[#2E9E5B]" /> : <Link2 className="w-4 h-4" />}
             {copied ? 'Link copied' : 'Copy candidate link'}
           </Button>
           {data.candidateEmail && (
@@ -74,9 +104,10 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
             </a>
           )}
           {data.ratings && (
-            <Button onClick={() => window.print()} className="h-9 gap-1.5 text-[13px] font-bold"
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)' }}>
-              <Download className="w-4 h-4" /> Download PDF
+            <Button onClick={downloadPdf} disabled={pdfBusy} className="h-9 gap-1.5 text-[13px] font-bold"
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
+              {pdfBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              Download PDF
             </Button>
           )}
           {!data.ratings && (
@@ -92,7 +123,7 @@ export function ChecklistDetail({ id, onBack, onManualEntry }: Props) {
         <ChecklistDocument data={data} />
       ) : (
         <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-10 py-14 text-center">
-          <div className="w-12 h-12 mx-auto rounded-2xl bg-[#eef2ff] border border-[#c7d2fe] flex items-center justify-center text-[#4f46e5]">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-[#E9F5EC] border border-[#CBE8D6] flex items-center justify-center text-[#1F7A44]">
             <ClipboardCheck className="w-6 h-6" />
           </div>
           <div className="text-[15px] font-bold text-[#334155] mt-4">No results yet</div>

@@ -46,22 +46,20 @@ export function AuthView({ onAuthed }: Props) {
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-10"
       style={{
         background:
-          'radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,0.10), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(26,42,108,0.08), transparent 60%), linear-gradient(180deg,#f6f8fc 0%, #eef2f9 100%)',
+          'radial-gradient(1200px 600px at 10% -10%, rgba(31,122,68,0.10), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(26,42,108,0.08), transparent 60%), linear-gradient(180deg,#f6f8fc 0%, #eef2f9 100%)',
       }}
     >
-      <div className="w-full max-w-4xl grid md:grid-cols-2 rounded-3xl overflow-hidden border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08),0_30px_80px_-20px_rgba(79,70,229,0.18)]">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 rounded-3xl overflow-hidden border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08),0_30px_80px_-20px_rgba(31,122,68,0.18)]">
         {/* Brand panel */}
         <div className="hidden md:flex flex-col justify-between p-8 relative text-white"
-          style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(99,102,241,0.35), transparent 60%), linear-gradient(135deg,#0a1628 0%, #1a2a6c 60%, #312e81 100%)' }}
+          style={{ background: 'radial-gradient(600px 200px at 0% 0%, rgba(46,158,91,0.35), transparent 60%), linear-gradient(135deg,#0A2B23 0%, #0E3B32 60%, #124F41 100%)' }}
         >
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center backdrop-blur">
-                <Calculator className="w-6 h-6" />
-              </div>
+              <img src="/vaultverify-logo-128.png" alt="VaultVerify logo" width={44} height={44} className="rounded-xl shrink-0" />
               <div>
                 <div className="text-xl font-extrabold tracking-tight">Recruiter tool</div>
-                <div className="text-[13px] font-medium text-[#a8b8d8]">Healthcare staffing, simplified</div>
+                <div className="text-[13px] font-medium text-[#A8CFB8]">Healthcare staffing, simplified</div>
               </div>
             </div>
             <div className="mt-10 space-y-5">
@@ -73,7 +71,7 @@ export function AuthView({ onAuthed }: Props) {
                 text="Checklist invitations sent straight from the app. API key managed by the superadmin." />
             </div>
           </div>
-          <div className="text-[12px] text-[#8ea0c8] flex items-center gap-2">
+          <div className="text-[12px] text-[#7FA893] flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5" /> Your data, your account — passwords hashed, sessions secured.
           </div>
         </div>
@@ -81,10 +79,7 @@ export function AuthView({ onAuthed }: Props) {
         {/* Form panel */}
         <div className="p-8 sm:p-10">
           <div className="md:hidden flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
-              style={{ background: 'linear-gradient(135deg,#6366f1,#4338ca)' }}>
-              <Calculator className="w-5 h-5" />
-            </div>
+            <img src="/vaultverify-logo-128.png" alt="VaultVerify logo" width={36} height={36} className="rounded-xl" />
             <div className="text-lg font-extrabold">Recruiter tool</div>
           </div>
 
@@ -120,30 +115,30 @@ export function AuthView({ onAuthed }: Props) {
             </div>
 
             {error && (
-              <div className="text-[13px] font-semibold text-[#dc2626] bg-[#fef2f2] border-l-[3px] border-[#dc2626] rounded-md px-3 py-2.5">
+              <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3 py-2.5">
                 {error}
               </div>
             )}
 
             <Button type="submit" disabled={busy}
               className="w-full h-11 text-[14px] font-bold"
-              style={{ background: 'linear-gradient(180deg,#6366f1,#4338ca)', boxShadow: '0 4px 14px rgba(79,70,229,0.30)' }}>
+              style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)', boxShadow: '0 4px 14px rgba(31,122,68,0.30)' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'login' ? <Sparkles className="w-4 h-4" /> : null}
               {mode === 'login' ? 'Log in' : 'Create account'}
             </Button>
           </form>
 
           <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
-            className="mt-5 text-[13px] font-semibold text-[#4f46e5] hover:text-[#4338ca] cursor-pointer">
+            className="mt-5 text-[13px] font-semibold text-[#1F7A44] hover:text-[#1E6B3C] cursor-pointer">
             {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
           </button>
 
           {mode === 'login' && (
             <div className="mt-6 pt-5 border-t border-[#eef1f6] flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#4f46e5] shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-[#1F7A44] shrink-0" />
               <span className="text-[12px] text-[#64748b]">Platform administrator?</span>
               <a href="/superadmin"
-                className="text-[12px] font-bold text-[#4f46e5] hover:text-[#4338ca] inline-flex items-center gap-1">
+                className="text-[12px] font-bold text-[#1F7A44] hover:text-[#1E6B3C] inline-flex items-center gap-1">
                 Superadmin console →
               </a>
             </div>
@@ -157,12 +152,12 @@ export function AuthView({ onAuthed }: Props) {
 function Feature({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return (
     <div className="flex gap-3.5">
-      <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0 text-[#c7d2fe]">
+      <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0 text-[#CBE8D6]">
         {icon}
       </div>
       <div>
         <div className="font-bold text-[14px]">{title}</div>
-        <div className="text-[12.5px] text-[#a8b8d8] leading-relaxed mt-0.5">{text}</div>
+        <div className="text-[12.5px] text-[#A8CFB8] leading-relaxed mt-0.5">{text}</div>
       </div>
     </div>
   )
