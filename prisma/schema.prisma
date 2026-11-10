@@ -54,7 +54,7 @@ model PlatformSetting {
   id               String  @id @default("main")
   // Brevo transactional email
   brevoApiKey      String?
-  brevoSenderEmail String  @default("myzipvault@gmail.com")
+  brevoSenderEmail String  @default("noreply@example.com")
   brevoSenderName  String  @default("VaultVerify")
   emailTestMode    Boolean @default(true) // true = log only, no real sends
   // Shared GSA Per Diem API key — superadmin-only, recruiters cannot override
@@ -62,7 +62,7 @@ model PlatformSetting {
   updatedAt        DateTime @updatedAt
 }
 
-// ─── Skills data (MyZipVault model: Profession → Job Title → Specialty → Category → Skill)
+// ─── Skills data (Profession → Job Title → Specialty → Category → Skill)
 // Managed by the superadmin; imported from the Skills Data xlsx template.
 model SkillTemplate {
   id         String   @id @default(cuid())

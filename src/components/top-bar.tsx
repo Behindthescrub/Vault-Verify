@@ -44,9 +44,9 @@ export function TopBar({ user, tab, onTab, onLogout }: {
 
           <div className="flex items-center gap-2 shrink-0">
             {user.role === 'superadmin' && (
-              <a href="/superadmin" title="Open the superadmin console"
+              <a href="/console" title="Open the admin console"
                 className="h-9 px-3 rounded-xl text-[13px] font-bold inline-flex items-center gap-1.5 bg-[#1F7A44]/30 border border-[#7BC894]/40 text-[#CBE8D6] hover:bg-[#1F7A44]/50 hover:text-white transition-colors">
-                <ShieldCheck className="w-4 h-4" /> Superadmin <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                <ShieldCheck className="w-4 h-4" /> Admin <ExternalLink className="w-3.5 h-3.5 opacity-70" />
               </a>
             )}
             <span className="text-[12px] text-[#A8CFB8] font-medium hidden md:block max-w-[180px] truncate">

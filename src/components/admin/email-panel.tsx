@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Email: Brevo transactional settings, the full branded SMTP
+// Admin console → Email: provider transactional settings, the full branded
 // template library (live preview + per-template test send + reset), send log.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,7 @@ export function EmailPanel() {
   const [brevoStatus, setBrevoStatus] = useState<BrevoStatus | null>(null)
   const [statusBusy, setStatusBusy] = useState(false)
 
-  // form state — Brevo settings
+  // form state — email provider settings
   const [brevoKey, setBrevoKey] = useState('')
   const [senderEmail, setSenderEmail] = useState('')
   const [senderName, setSenderName] = useState('')
@@ -54,7 +54,7 @@ export function EmailPanel() {
   const [saveError, setSaveError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  // test email (Brevo settings card)
+  // test email (email settings card)
   const [testTo, setTestTo] = useState('')
   const [testBusy, setTestBusy] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null)
@@ -117,7 +117,7 @@ export function EmailPanel() {
       })
       setSettings(data.settings)
       setBrevoKey('')
-      setSaveMsg('Brevo settings saved.')
+      setSaveMsg('Email settings saved.')
       setTimeout(() => setSaveMsg(''), 3000)
       refreshBrevoStatus()
     } catch (e) {
@@ -137,8 +137,8 @@ export function EmailPanel() {
       setTestResult({
         ok: true,
         text: data.emailStatus === 'test-mode'
-          ? `Logged in test mode — no real email sent to ${data.sentTo}. Add a Brevo API key and disable test mode to send for real.`
-          : `Sent to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no credits move: check spam, then Brevo → Transactional → Events — "Your sending platform is currently disabled" means the account needs activation by Brevo support (see the note above).`,
+          ? `Logged in test mode — no real email sent to ${data.sentTo}. Add an email provider API key and disable test mode to send for real.`
+          : `Sent to ${data.sentTo} — accepted by the email service${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no quota moves: check spam, then the provider's delivery log — a disabled sending platform must be reactivated by the provider's support (see the note above).`,
       })
       refresh()
     } catch (e) {
@@ -232,7 +232,7 @@ export function EmailPanel() {
         ok: true,
         text: data.emailStatus === 'test-mode'
           ? `Logged in test mode — no real email sent to ${data.sentTo}.`
-          : `Sent this template to ${data.sentTo} — accepted by Brevo${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no credits move, see the accepted ≠ delivered note above.`,
+          : `Sent this template to ${data.sentTo} — accepted by the email service${data.messageId ? ` (id ${data.messageId.slice(0, 26)}…)` : ''}. If it never arrives and no quota moves, see the accepted ≠ delivered note above.`,
       })
       refresh()
     } catch (e) {
@@ -253,7 +253,7 @@ export function EmailPanel() {
     } catch { /* keep old state on failure */ }
   }
 
-  // Live preview: sample vars + the CURRENT Brevo sender identity.
+  // Live preview: sample vars + the CURRENT sender identity.
   const previewVars = useMemo(() => {
     if (!editing) return {}
     return {
@@ -293,12 +293,10 @@ export function EmailPanel() {
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] divide-y divide-[#eef1f6]">
         <div className="px-6 sm:px-7 py-5">
           <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-1 flex items-center gap-2">
-            <Mail className="w-4 h-4 text-[#1F7A44]" /> Brevo transactional email
+            <Mail className="w-4 h-4 text-[#1F7A44]" /> Transactional email
           </h2>
           <p className="text-[12px] text-[#94a3b8] mb-3.5">
-            All templates below are delivered through Brevo. Generate an <strong>API v3 key</strong> (starts with <code>xkeysib-</code>) at
-            <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noreferrer" className="text-[#1F7A44] font-bold ml-1">app.brevo.com → SMTP &amp; API → API keys</a>.
-            SMTP keys (<code>xsmtpsib-…</code>) only work on the SMTP relay, not with this API — the REST endpoint is what the app uses (it also works on Vercel serverless).
+            All templates below are delivered through the platform's transactional email provider. Generate an <strong>API v3 key</strong> with your provider (the REST API key — SMTP-only keys are not used) and paste it below.
             {settings?.brevoApiKeySet && (
               <span className="block mt-1">Current key: <code className="bg-[#f1f5f9] rounded px-1.5 py-0.5">{settings.brevoApiKeyMasked}</code></span>
             )}
@@ -308,15 +306,15 @@ export function EmailPanel() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Brevo API key</Label>
+              <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Email provider API key</Label>
               <Input type="password" value={brevoKey} onChange={(e) => setBrevoKey(e.target.value)}
-                placeholder={settings?.brevoApiKeySet ? 'Saved — enter a new key to replace' : 'xkeysib-…'} className="h-11 mt-1.5" autoComplete="off" />
+                placeholder={settings?.brevoApiKeySet ? 'Saved — enter a new key to replace' : 'API key…'} className="h-11 mt-1.5" autoComplete="off" />
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Sender email</Label>
               <Input type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)}
-                placeholder="myzipvault@gmail.com" className="h-11 mt-1.5" />
-              <p className="text-[11px] text-[#94a3b8] mt-1.5">Must be added &amp; verified as a sender in Brevo (Senders &amp; IP). Stamps every template footer.</p>
+                placeholder="noreply@yourdomain.com" className="h-11 mt-1.5" />
+              <p className="text-[11px] text-[#94a3b8] mt-1.5">Must be added &amp; verified as a sender with your email provider. Stamps every template footer.</p>
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Sender name</Label>
@@ -334,7 +332,7 @@ export function EmailPanel() {
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Button onClick={saveBrevo} disabled={busy} className="font-bold gap-2 h-11"
               style={{ background: 'linear-gradient(180deg,#2E9E5B,#1E6B3C)' }}>
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Brevo settings
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save email settings
             </Button>
             <div className="flex items-center gap-2 flex-1 min-w-[240px]">
               <Input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)}
@@ -415,8 +413,7 @@ export function EmailPanel() {
             <History className="w-4 h-4 text-[#1F7A44]" /> Send log (last 50)
           </h2>
           <p className="text-[11px] text-[#94a3b8] mb-3 leading-relaxed">
-            <strong>sent</strong> = accepted by Brevo’s API (their messageId shown) — not a delivery guarantee. Actual delivery shows in{' '}
-            <a href="https://app.brevo.com/transactional" target="_blank" rel="noreferrer" className="font-bold underline">Brevo → Transactional → Events</a>.
+            <strong>sent</strong> = accepted by the provider’s API (message id shown) — not a delivery guarantee. Actual delivery shows in your email provider’s delivery log.
           </p>
           <div className="rounded-2xl border border-[#eef1f6] max-h-72 overflow-y-auto divide-y divide-[#eef1f6]">
             {logs.length === 0 && <div className="px-4 py-6 text-center text-[13px] text-[#94a3b8]">No emails logged yet.</div>}
@@ -492,7 +489,7 @@ export function EmailPanel() {
                       <span className="block text-[11.5px] text-[#64748b] mt-0.5 leading-snug">
                         {editing.automated
                           ? 'Automated emails only go out while this is on.'
-                          : 'This template is sent on demand (recruiter/superadmin action), so it always fires.'}
+                          : 'This template is sent on demand (recruiter/admin action), so it always fires.'}
                       </span>
                     </div>
                   </div>
@@ -572,8 +569,8 @@ export function EmailPanel() {
   )
 }
 
-// ─── Connected Brevo account strip ────────────────────────────────────
-// Live truth from the Brevo API: which account the saved key belongs to
+// ─── Connected email account strip ────────────────────────────────────
+// Live truth from the provider's API: which account the saved key belongs to
 // (the one being charged), its plan/quota, and whether the configured
 // sender actually verifies. Kills the "credits not deducted / which
 // dashboard am I looking at" confusion at a glance.
@@ -591,11 +588,11 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
         <AlertTriangle className="w-4 h-4 shrink-0" />
         <span className="flex-1">
           {noKey
-            ? 'No Brevo API key saved yet — every send stays in test mode (logged, never delivered).'
-            : `Brevo rejected the saved key: ${status.error ?? 'unknown error'} — paste a valid xkeysib-… key below and save.`}
+            ? 'No email provider API key saved yet — every send stays in test mode (logged, never delivered).'
+            : `The email provider rejected the saved key: ${status.error ?? 'unknown error'} — paste a valid API key below and save.`}
         </span>
         <button type="button" onClick={onRefresh} disabled={busy}
-          className="text-[#64748b] hover:bg-white rounded-lg p-1.5 transition-colors shrink-0" title="Re-check Brevo">
+          className="text-[#64748b] hover:bg-white rounded-lg p-1.5 transition-colors shrink-0" title="Re-check status">
           <RefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
         </button>
       </div>
@@ -611,7 +608,7 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
       <div className="px-4 py-3 flex items-center gap-2.5 flex-wrap">
         <BadgeCheck className="w-4 h-4 text-[#1E6B3C] shrink-0" />
         <span className="text-[13px] font-bold text-[#0f172a]">
-          Connected Brevo account: <span className="text-[#1E6B3C]">{a?.email ?? 'unknown'}</span>
+          Connected email account: <span className="text-[#1E6B3C]">{a?.email ?? 'unknown'}</span>
         </span>
         {a?.planCredits != null && (
           <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-[#E9F5EC] border-[#CBE8D6] text-[#1E6B3C]">
@@ -619,23 +616,21 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
           </span>
         )}
         <button type="button" onClick={onRefresh} disabled={busy}
-          className="ml-auto text-[#1E6B3C] hover:bg-[#E9F5EC] rounded-lg p-1.5 transition-colors shrink-0" title="Re-check the Brevo account">
+          className="ml-auto text-[#1E6B3C] hover:bg-[#E9F5EC] rounded-lg p-1.5 transition-colors shrink-0" title="Re-check the email account">
           <RefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
         </button>
       </div>
       {a?.planType === 'free' && (
         <div className="px-4 py-2.5 text-[11.5px] text-[#64748b] leading-relaxed">
-          Free plan: sends draw from a <strong>300/day quota that resets every 24h</strong> — there is no prepaid credit balance to deduct.
-          To see usage, log into Brevo with <strong>{a.email}</strong> (not another Brevo login) and check <strong>Transactional → Real-time</strong>.
+          Free plan: sends draw from a <strong>daily quota that resets every 24h</strong> — there is no prepaid credit balance to deduct.
+          To see usage, log into the email provider with <strong>{a.email}</strong> (the account that owns the key) and check its usage dashboard.
         </div>
       )}
       <div className="px-4 py-3 flex items-start gap-2.5">
         <Info className="w-4 h-4 text-[#64748b] shrink-0 mt-0.5" />
         <span className="text-[12px] text-[#64748b] leading-relaxed">
-          <strong className="text-[#334155]">Accepted ≠ delivered.</strong> A <strong>sent</strong> row (with a Brevo id) means Brevo’s API <em>accepted</em> the email — final delivery shows in{' '}
-          <a href="https://app.brevo.com/transactional" target="_blank" rel="noreferrer" className="font-bold underline">Brevo → Transactional → Events</a>.
-          If nothing arrives <strong>and no credits are used</strong>, look for <strong>“Your sending platform is currently disabled”</strong> there — that account’s transactional platform needs an{' '}
-          <a href="https://help.brevo.com/hc/en-us/requests/new" target="_blank" rel="noreferrer" className="font-bold underline">activation ticket from Brevo support</a>; every send is silently dropped until Brevo enables it.
+          <strong className="text-[#334155]">Accepted ≠ delivered.</strong> A <strong>sent</strong> row (with a provider id) means the provider’s API <em>accepted</em> the email — final delivery shows in their delivery log.
+          If nothing arrives <strong>and no quota is used</strong>, look for a <strong>“sending platform disabled”</strong> status there — that account’s transactional sending needs to be reactivated by the provider’s support; every send is silently dropped until then.
         </span>
       </div>
       <div className="px-4 py-3 flex items-center gap-2.5 flex-wrap">
@@ -643,15 +638,14 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
           <>
             <BadgeCheck className="w-4 h-4 text-[#1E6B3C] shrink-0" />
             <span className="text-[12.5px] text-[#334155]">
-              Sender <code className="bg-white border border-[#e2e8f0] rounded px-1 py-0.5">{status.senderEmail}</code> is verified &amp; active on this account — Brevo accepts emails from it.
+              Sender <code className="bg-white border border-[#e2e8f0] rounded px-1 py-0.5">{status.senderEmail}</code> is verified &amp; active on this account — the provider accepts emails from it.
             </span>
           </>
         ) : (
           <>
             <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0" />
             <span className="text-[12.5px] text-[#92400E]">
-              Sender <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">{status.senderEmail}</code> is <strong>not</strong> an active verified sender on this account —{' '}
-              <a href="https://app.brevo.com/senders" target="_blank" rel="noreferrer" className="font-bold underline">add &amp; verify it in Brevo</a> or sends will be rejected.
+              Sender <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">{status.senderEmail}</code> is <strong>not</strong> an active verified sender on this account — add &amp; verify it with your email provider or sends will be rejected.
             </span>
           </>
         )}
@@ -660,8 +654,8 @@ function BrevoAccountStrip({ status, busy, onRefresh }: { status: BrevoStatus | 
         <div className="px-4 py-3 flex items-start gap-2.5 bg-[#FFF9E6]">
           <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
           <span className="text-[12px] text-[#92400E] leading-relaxed">
-            <strong>Deliverability warning:</strong> {status.senderDomain} is a free-mail domain. Brevo cannot publish SPF/DKIM records for it, so inbox providers often sort these emails into <strong>spam</strong>.
-            For reliable delivery, verify a sender on a domain you own{suggestDomain ? <> (e.g. <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">no-reply@{suggestDomain}</code>)</> : null} in Brevo with its SPF/DKIM records, then switch the sender above. Until then, check the spam folder when testing.
+            <strong>Deliverability warning:</strong> {status.senderDomain} is a free-mail domain. Your email provider cannot publish SPF/DKIM records for it, so inbox providers often sort these emails into <strong>spam</strong>.
+            For reliable delivery, verify a sender on a domain you own{suggestDomain ? <> (e.g. <code className="bg-white border border-[#F3D9A4] rounded px-1 py-0.5">no-reply@{suggestDomain}</code>)</> : null} with its SPF/DKIM records, then switch the sender above. Until then, check the spam folder when testing.
           </span>
         </div>
       )}

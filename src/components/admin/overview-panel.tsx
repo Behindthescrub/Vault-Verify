@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Overview: platform usage stats + recent activity.
+// Admin console → Overview: platform usage stats + recent activity.
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/client-api'
 import type { AdminOverview, AdminRecentSignup, AdminRecentSubmission } from '@/lib/types'

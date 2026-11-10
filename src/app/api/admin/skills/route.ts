@@ -1,4 +1,4 @@
-// Superadmin — skills data management (MyZipVault model).
+// Admin console — skills data management.
 // GET    /api/admin/skills               → all templates (with counts)
 // GET    /api/admin/skills?templateId=x  → one template + its skills
 // POST   /api/admin/skills               → add a skill to a template

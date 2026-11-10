@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Skill checklist data: every checklist + candidate responses
+// Admin console → Skill checklist data: every checklist + candidate responses
 // across all recruiter accounts, with search, filters, detail view and CSV export.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'

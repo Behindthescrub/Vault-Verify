@@ -39,12 +39,12 @@ ck "login returns 200" "$([ "$code" = "200" ] && echo 1 || echo 0)"
 
 echo; echo "== 2. save settings → backup file written =="
 curl -s --max-time 90 -b /tmp/sh-admin.txt -X PUT http://localhost:3000/api/admin/settings -H "$J" \
-  -d '{"brevoSenderEmail":"myzipvault@gmail.com","brevoSenderName":"VaultVerify","emailTestMode":false}' > /dev/null
+  -d '{"brevoSenderEmail":"noreply@example.com","brevoSenderName":"VaultVerify","emailTestMode":false}' > /dev/null
 python3 -c "
 import json,sys
 try:
     b=json.load(open('db/platform-backup.json'))
-    ok=(b.get('brevoSenderEmail')=='myzipvault@gmail.com' and b.get('brevoSenderName')=='VaultVerify' and b.get('emailTestMode') is False and b.get('brevoApiKey') is None)
+    ok=(b.get('brevoSenderEmail')=='noreply@example.com' and b.get('brevoSenderName')=='VaultVerify' and b.get('emailTestMode') is False and b.get('brevoApiKey') is None)
 except Exception as e:
     ok=False
 print('  [%s] backup file: sender+testMode persisted, keys empty' % ('PASS' if ok else 'FAIL'))
@@ -92,7 +92,7 @@ curl -s --max-time 90 -b /tmp/sh-admin2.txt http://localhost:3000/api/admin/emai
 python3 -c "
 import json
 s=json.load(open('/tmp/sh-status.json'))
-ok=(s.get('reason')=='no-key' and s.get('senderEmail')=='myzipvault@gmail.com'
+ok=(s.get('reason')=='no-key' and s.get('senderEmail')=='noreply@example.com'
     and s.get('senderName')=='VaultVerify' and s.get('testMode') is False)
 print('  [%s] restored: sender=%s testMode=%s reason=%s' % ('PASS' if ok else 'FAIL', s.get('senderEmail'), s.get('testMode'), s.get('reason')))
 open('/tmp/sh-r','w').write('1' if ok else '0')
@@ -114,7 +114,7 @@ ck "test send is safely test-mode" "$(cat /tmp/sh-r)"
 echo; echo "== 7. browser: Email tab (no-key strip, footnote, templates) =="
 AB="agent-browser"
 $AB set viewport 1440 900 || true
-$AB open http://localhost:3000/superadmin || true
+$AB open http://localhost:3000/console || true
 $AB wait 2500
 $AB find label "Username" fill "admin" || true
 $AB find label "Password" fill "Superadmin@123" || true
@@ -126,11 +126,11 @@ $AB wait 3500
 mkdir -p /tmp/render
 $AB screenshot /tmp/render/email-tab-selfheal.png || true
 $AB eval "(() => { const t = document.body.textContent; const checks = [
-  ['no-key strip explains test mode', t.includes('No Brevo API key saved yet')],
+  ['no-key strip explains test mode', t.includes('No email provider API key saved yet')],
   ['send log footnote (accepted vs delivered)', t.includes('not a delivery guarantee')],
   ['template library header', t.includes('SMTP email templates')],
   ['six templates listed', ['Candidate invitation','Candidate reminder','Submission confirmation','Results notification','Welcome','Platform test'].every(x => t.includes(x))],
-  ['Brevo key input present', !!document.querySelector('input[type=password]')],
+  ['Email provider key input present', !!document.querySelector('input[type=password]')],
 ]; return checks.map(([n,v]) => (v ? 'PASS' : 'FAIL') + ' ' + n).join('\\n'); })()" || true
 $AB close || true
 

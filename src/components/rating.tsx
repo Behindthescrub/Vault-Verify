@@ -5,7 +5,7 @@
 // plus N/A where the skill offers it, and yes/no + text question types.
 
 import { Input } from '@/components/ui/input'
-import type { RatingValue } from '@/lib/skills'
+import type { RatingValue } from '@/lib/skills-shared'
 
 export function RatingPills({ value, onChange, hasNa = false, questionType = 'rating_1_4', size = 'md', textValue }: {
   value: RatingValue | null

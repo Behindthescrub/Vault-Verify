@@ -23,7 +23,7 @@ import {
   ADDITIONAL_SECTIONS, ATTESTATION, summarizeChecklist,
   lastPerformedLabel, ratingShortLabel,
   type ChecklistSummaryStats, type Ratings, type LastPerformed, type RatingValue,
-} from '@/lib/skills'
+} from '@/lib/skills-shared'
 import type { ChecklistDetail } from '@/lib/types'
 import { CheckCircle2 } from 'lucide-react'
 

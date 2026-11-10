@@ -17,7 +17,7 @@ AB="agent-browser"
 $AB set viewport 1440 900 || true
 
 echo; echo "======== superadmin login ========"
-$AB open http://localhost:3000/superadmin || true
+$AB open http://localhost:3000/console || true
 $AB wait 2500
 $AB find label "Username" fill "admin" || true
 $AB find label "Password" fill "Superadmin@123" || true

@@ -1,5 +1,5 @@
 // Seed: superadmin account + platform settings + skills data from
-// prisma/seed-skills.xlsx (the MyZipVault "Skills Data" import template).
+// prisma/seed-skills.xlsx (the "Skills Data" import template).
 // Run: bun scripts/seed.ts
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'

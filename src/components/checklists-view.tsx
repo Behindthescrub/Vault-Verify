@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { api } from '@/lib/client-api'
 import type { ChecklistSummary } from '@/lib/types'
-import type { SnapshotCategory, SnapshotSkill } from '@/lib/skills'
+import type { SnapshotCategory, SnapshotSkill } from '@/lib/skills-shared'
 import { CheckSquare, ChevronRight, ClipboardCheck, Copy, Eye, Link2, Loader2, Mail, Plus, Search, Send, Trash2, UserPen } from 'lucide-react'
 
 type TemplateRow = {
@@ -216,7 +216,7 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
         ok: true,
         text:
           data.emailStatus === 'test-mode'
-            ? 'Logged in test mode (no real email sent — add a Brevo API key and turn off test mode in Superadmin → Email). The link below still works — you can copy and send it yourself.'
+            ? 'Logged in test mode — no real email was sent (email sending is enabled by the platform administrator). The link below still works — you can copy and send it yourself.'
             : 'Invitation sent.',
         link: data.link,
       })

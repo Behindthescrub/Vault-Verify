@@ -1,4 +1,4 @@
-// Superadmin — import skills data from the MyZipVault "Skills Data" xlsx template.
+// Admin console — import skills data from the "Skills Data" xlsx template.
 // Templates are keyed by (profession, jobTitle, specialty); duplicate skills are skipped.
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'

@@ -10,7 +10,7 @@ import {
   CHECKLIST_BRAND, VALIDITY_DAYS, ADDITIONAL_SECTIONS, ATTESTATION,
   LAST_PERFORMED_OPTIONS, SCALE_LEGEND,
   type RatingValue, type SnapshotCategory, type LastPerformedValue, type AdditionalSection,
-} from '@/lib/skills'
+} from '@/lib/skills-shared'
 import { CheckCircle2, ClipboardCheck, Loader2, PartyPopper, PenLine } from 'lucide-react'
 
 type PublicData = {

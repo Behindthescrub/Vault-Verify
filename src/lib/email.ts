@@ -1,4 +1,4 @@
-// Brevo transactional email — API key is managed in the superadmin panel
+// Transactional email — API key is managed in the admin console (server-side only)
 // (PlatformSetting), not env vars. Test mode logs sends without delivering.
 import { db } from '@/lib/db'
 import { readPlatformBackup } from '@/lib/platform-backup'

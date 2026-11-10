@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Keys & access: shared GSA Per Diem API key + superadmin credentials.
+// Admin console → Keys & access: shared GSA Per Diem API key + administrator credentials.
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -114,7 +114,7 @@ export function KeysPanel({ onCredentialsChanged }: { onCredentialsChanged: () =
       {/* Credentials */}
       <div className="rounded-3xl border border-[#eef1f6] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 sm:px-7 py-5">
         <h2 className="text-[13px] font-extrabold uppercase tracking-[0.6px] text-[#334155] mb-3.5 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-[#1F7A44]" /> Superadmin credentials
+          <ShieldCheck className="w-4 h-4 text-[#1F7A44]" /> Administrator credentials
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>

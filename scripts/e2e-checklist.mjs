@@ -63,7 +63,7 @@ r = await call('/api/checklists', {
     title: 'RN General Nursing',
     templateId: tpl.id,
     candidateName: 'Sam',
-    candidateEmail: 'shaswat.0047@gmail.com',
+    candidateEmail: 'candidate@example.com',
     items: PDF_ITEMS,
   }),
 })
@@ -99,9 +99,9 @@ r = await call(`/api/public/checklist/${token}/submit`, {
       },
     },
     candidateName: 'Sam',
-    candidateEmail: 'shaswat.0047@gmail.com',
-    signedName: 'Shaswat pandey',
-    printedName: 'Shaswat pandey',
+    candidateEmail: 'candidate@example.com',
+    signedName: 'Test User',
+    printedName: 'Test User',
   }),
 })
 if (r.status !== 200) fail('submit failed: ' + JSON.stringify(r.body))
@@ -131,9 +131,9 @@ if (!c.ratings) fail('ratings missing')
 if (!c.lastPerformed || c.lastPerformed['Documentation on M.A.R.'] !== '3m') fail('lastPerformed missing/wrong')
 if (!c.additional || c.additional.experienceYears !== 3) fail('additional.experienceYears missing')
 if (c.additional?.answers?.ehr_systems !== 'epic, cerner and meditech') fail('additional answers missing')
-if (c.printedName !== 'Shaswat pandey') fail('printedName missing')
+if (c.printedName !== 'Test User') fail('printedName missing')
 if (!c.validUntil) fail('validUntil missing')
-if (c.signedName !== 'Shaswat pandey') fail('signedName missing')
+if (c.signedName !== 'Test User') fail('signedName missing')
 ok('detail API returns lastPerformed + additional + printedName + validUntil')
 
 // 9. Math check: avg 3.57 ≈ 3.6 displayed; PDF mix 6×4 + 1×1
@@ -156,7 +156,7 @@ ok('superadmin read-only detail includes the same fields')
 // 11. Double submission blocked
 r = await call(`/api/public/checklist/${token}/submit`, {
   method: 'POST',
-  body: JSON.stringify({ ratings: RATINGS, candidateName: 'Sam', signedName: 'Shaswat pandey' }),
+  body: JSON.stringify({ ratings: RATINGS, candidateName: 'Sam', signedName: 'Test User' }),
 })
 if (r.status !== 409) fail('double submission not blocked')
 ok('double submission blocked (409)')

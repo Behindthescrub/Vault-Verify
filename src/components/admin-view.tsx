@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin shell — one account owns all platform data:
+// Admin console shell — one account owns all platform data:
 // checklist data, accounts & auth sessions, calculator runs, email settings & logs, API keys.
 import { useState } from 'react'
 import { OverviewPanel } from '@/components/admin/overview-panel'
@@ -32,10 +32,10 @@ export function AdminView() {
     <div className="max-w-[1100px] mx-auto space-y-5">
       <div>
         <h1 className="text-[24px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2.5">
-          <ShieldCheck className="w-6 h-6 text-[#1F7A44]" /> Superadmin
+          <ShieldCheck className="w-6 h-6 text-[#1F7A44]" /> Admin console
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
-          Platform-wide data &amp; configuration — skills library, every checklist, account, session and calculator run on Recruiter tool.
+          Platform-wide data &amp; configuration — skills library, every checklist, account, session and calculator run on the platform.
         </p>
       </div>
 

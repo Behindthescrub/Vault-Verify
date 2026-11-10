@@ -3,7 +3,7 @@
 //
 // Why: the dev sandbox can re-provision the database file empty between
 // sessions. When that happens, getPlatformSettings() lazily re-creates the
-// row from this file, so the saved Brevo/GSA keys and sender identity
+// row from this file, so the saved email/GSA keys and sender identity
 // survive — the superadmin only ever pastes a key once. On read-only hosts
 // (Vercel serverless) every operation degrades to a no-op: the production
 // database is the source of truth there and is never re-provisioned.

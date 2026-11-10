@@ -10,7 +10,7 @@ import { RatingPills, ScaleLegend } from '@/components/rating'
 import {
   ADDITIONAL_SECTIONS, LAST_PERFORMED_OPTIONS,
   type RatingValue, type LastPerformedValue,
-} from '@/lib/skills'
+} from '@/lib/skills-shared'
 import { ArrowLeft, Check, Loader2, UserPen } from 'lucide-react'
 
 type Props = {

@@ -1,7 +1,7 @@
 'use client'
 
-// /superadmin — the platform administration console.
-// Own URL, own username+password login (superadmin accounts only).
+// /console — the platform administration console.
+// Own URL, own username+password login (platform administrator accounts only).
 // Everything downstream (APIs under /api/admin/*) is guarded server-side.
 import { useCallback, useEffect, useState } from 'react'
 import { SuperadminLogin } from '@/components/superadmin-login'
@@ -51,8 +51,8 @@ export default function SuperadminPage() {
           </div>
           <h1 className="mt-5 text-[20px] font-extrabold text-white">Access restricted</h1>
           <p className="mt-2 text-[13px] text-[#A8CFB8] leading-relaxed">
-            You are signed in as <span className="text-white font-semibold">{user.email}</span>, which is not a
-            superadmin account. This console is reserved for platform administrators.
+            You are signed in as <span className="text-white font-semibold">{user.email}</span>, which does not have
+            platform administration access. This console is reserved for platform administrators.
           </p>
           <div className="mt-7 flex flex-col sm:flex-row gap-2.5 justify-center">
             <a href="/"
@@ -81,7 +81,7 @@ export default function SuperadminPage() {
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <span className="text-white font-extrabold text-[15px] tracking-tight">
-                Superadmin <span className="hidden sm:inline text-[#A8CFB8] font-bold">· Recruiter tool</span>
+                Admin console <span className="hidden sm:inline text-[#A8CFB8] font-bold">· VaultVerify</span>
               </span>
             </div>
 
@@ -111,7 +111,7 @@ export default function SuperadminPage() {
 
       <footer className="mt-auto">
         <div className="max-w-[1100px] mx-auto px-4 py-6 text-center text-[11.5px] text-[#94a3b8]">
-          Recruiter tool superadmin console · /superadmin
+          VaultVerify admin console
         </div>
       </footer>
     </div>

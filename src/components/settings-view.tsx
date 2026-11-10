@@ -84,7 +84,7 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Role</Label>
-              <Input value={user.role === 'superadmin' ? 'Superadmin' : 'Recruiter'} disabled className="h-11 mt-1.5 bg-[#f8fafc]" />
+              <Input value={user.role === 'superadmin' ? 'Platform admin' : 'Recruiter'} disabled className="h-11 mt-1.5 bg-[#f8fafc]" />
             </div>
           </div>
         </div>

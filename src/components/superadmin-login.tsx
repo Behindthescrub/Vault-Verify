@@ -1,6 +1,6 @@
 'use client'
 
-// Dedicated login for the /superadmin console — username + password.
+// Dedicated login for the /console page — username + password.
 // Distinct dark "console" look so it's clearly separate from the recruiter login.
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -49,8 +49,8 @@ export function SuperadminLogin({ onSuccess }: Props) {
           <div className="flex items-center gap-3.5">
             <img src="/vaultverify-logo-128.png" alt="VaultVerify logo" width={46} height={46} className="rounded-2xl shrink-0" />
             <div>
-              <div className="text-[19px] font-extrabold tracking-tight text-white">Superadmin console</div>
-              <div className="text-[12.5px] font-medium text-[#A8CFB8]">Recruiter tool · platform administration</div>
+              <div className="text-[19px] font-extrabold tracking-tight text-white">Admin console</div>
+              <div className="text-[12.5px] font-medium text-[#A8CFB8]">VaultVerify · platform administration</div>
             </div>
           </div>
 
@@ -86,16 +86,14 @@ export function SuperadminLogin({ onSuccess }: Props) {
           </form>
 
           <p className="mt-6 text-[11.5px] leading-relaxed text-[#7FA893]">
-            Authorized platform administrators only. Credentials are set at seed time
-            (<code className="bg-white/10 rounded px-1 py-0.5">SUPERADMIN_EMAIL</code> /{' '}
-            <code className="bg-white/10 rounded px-1 py-0.5">SUPERADMIN_PASSWORD</code>) and can be
-            changed under <span className="text-[#CBE8D6] font-bold">Keys &amp; access</span>.
+            Authorized platform administrators only. Access credentials are managed
+            by the platform owner and can be changed under <span className="text-[#CBE8D6] font-bold">Keys &amp; access</span>.
           </p>
         </div>
 
         <div className="mt-5 text-center">
           <a href="/" className="text-[12.5px] font-semibold text-[#A8CFB8] hover:text-white transition-colors">
-            ← Back to Recruiter tool
+            ← Back to VaultVerify
           </a>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Skills data: the MyZipVault skills management UI.
+// Admin console → Skills data: the skills library management UI.
 // Master-detail: left = Professions → Job Titles; right = Specialties + Skills.
 // Includes the 2-step Excel import (validate → import), template/skill CRUD,
 // group rename/delete, blank template download and full data export.

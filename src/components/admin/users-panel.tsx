@@ -1,6 +1,6 @@
 'use client'
 
-// Superadmin → Users & auth: all accounts, active sessions (auth data),
+// Admin console → Users & auth: all accounts, active sessions (auth data),
 // and saved calculator runs across the platform.
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/client-api'
@@ -49,7 +49,7 @@ export function UsersPanel({ version }: Props) {
               <div className="min-w-0 flex-1">
                 <div className="text-[13.5px] font-bold text-[#0f172a] truncate">{u.email}</div>
                 <div className="text-[11.5px] text-[#94a3b8]">
-                  {u.role === 'superadmin' ? 'superadmin' : u.company || 'no company'}
+                  {u.role === 'superadmin' ? 'platform admin' : u.company || 'no company'}
                   {' · '}{u.checklistCount} checklists · {u.calculationCount} saved runs
                   {' · joined '}{new Date(u.createdAt).toLocaleDateString()}
                 </div>

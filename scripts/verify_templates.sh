@@ -39,7 +39,7 @@ curl -s --max-time 60 -b /tmp/rt-admin.txt http://localhost:3000/api/admin/email
 
 echo; echo "== 4. test-email with templateKey=candidate_invite (REAL branded send) =="
 curl -s --max-time 90 -b /tmp/rt-admin.txt -X POST http://localhost:3000/api/admin/test-email -H "$J" \
-  -d '{"to":"myzipvault@gmail.com","templateKey":"candidate_invite"}'; echo
+  -d '{"to":"test@example.com","templateKey":"candidate_invite"}'; echo
 
 echo; echo "== 5. recruiter signup → welcome email =="
 TS="tpl$(date +%s)@test.local"

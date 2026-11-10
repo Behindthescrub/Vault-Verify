@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPlatformSettings } from '@/lib/email'
 import { getCurrentUser, isSuperadmin } from '@/lib/auth'
 
-// GET /api/admin/email-status — live picture of the Brevo account behind the
+// GET /api/admin/email-status — live picture of the email provider account behind the
 // saved key: which account it is, its plan/quota, the verified senders, and
 // whether the configured sender actually checks out. The API key itself is
 // never returned. Answers "which account is being charged?" at a glance.
@@ -55,7 +55,7 @@ export async function GET() {
         ...base,
         authenticated: false,
         reason: 'rejected',
-        error: body.message ?? body.code ?? `Brevo returned HTTP ${accResp.status}`,
+        error: body.message ?? body.code ?? `The email provider returned HTTP ${accResp.status}`,
         senders: [],
       })
     }
@@ -95,7 +95,7 @@ export async function GET() {
       ...base,
       authenticated: false,
       reason: 'network',
-      error: e instanceof Error ? e.message : 'Could not reach Brevo',
+      error: e instanceof Error ? e.message : 'Could not reach the email provider',
       senders: [],
     })
   }

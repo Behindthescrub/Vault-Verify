@@ -7,7 +7,7 @@ Four services, in this order. Total time: ~30 minutes.
 ## 1. GitHub (new repository)
 
 The project folder is already a git repo with an initial commit. Push it to a
-**new** repository (do NOT reuse the MyZipVault repo):
+**new** repository (do NOT reuse a previous project's repo):
 
 ```bash
 # inside the project folder
@@ -36,7 +36,7 @@ instead.)
 **Prisma is already on Postgres** (`provider = "postgresql"` in
 `prisma/schema.prisma`) — nothing to switch anymore.
 
-**This project is already migrated and seeded** (superadmin + 315 templates /
+**This project is already migrated and seeded** (platform admin + 315 templates /
 32,837 skills live in Supabase). To redo it on a fresh project:
 
 ```bash
@@ -59,7 +59,7 @@ DATABASE_URL="postgresql://…pooler…5432/postgres?sslmode=require" bun script
    "Repo + auto-deploy" setup — `vercel.json` in the repo pins the build
    command `prisma generate && next build`).
 
-**Create the tables + superadmin** (one-time, from your laptop):
+**Create the tables + platform admin** (one-time, from your laptop):
 
 ```bash
 # in the project folder, with the Supabase connection string
@@ -72,17 +72,17 @@ SUPERADMIN_PASSWORD="ChooseAStrongPassword" \
   bun scripts/seed.ts
 ```
 
-Visit **`https://<your-app>.vercel.app/superadmin`** — the superadmin console has
+Visit **`https://<your-app>.vercel.app/console`** — the admin console has
 its own URL with a username + password login (enter `you@yourdomain.com`, or just
 `you` — the local part of the email — as the username). Log in there and change
-the password in **Keys & access → Superadmin credentials**. The recruiter app at
+the password in **Keys & access → Administrator credentials**. The recruiter app at
 `/` stays completely separate for your staffing accounts.
 
 > The dev sandbox runs on the same Supabase Postgres via the pooler string in
 > `.env` (git-ignored — copy `.env.example` and fill in your password). The old
 > SQLite file (`db/custom.db`) is kept only as an emergency fallback.
 >
-> If the database is ever wiped empty, the app self-heals: the superadmin
+> If the database is ever wiped empty, the app self-heals: the admin console
 > console login (`admin` / `Superadmin@123` unless changed) recreates the
 > default admin, and saved platform settings — including the Brevo/GSA keys —
 > are restored automatically from `db/platform-backup.json`. Only the skills
@@ -97,7 +97,7 @@ The Brevo API key is **not** an env var — you set it inside the app:
 3. In Brevo, **Senders → add and verify** the sender email you'll send from
    (e.g. `no-reply@yourdomain.com`). For better deliverability also add the
    SPF/DKIM records Brevo shows you to your domain's DNS.
-4. In the app: log in as superadmin → **Superadmin → Email**:
+4. In the app: log in as the platform admin → **Admin console → Email**:
    - paste the **Brevo API key**
    - set the **sender email** (must match the verified sender) and name
    - use **Send test email** to verify
@@ -109,7 +109,7 @@ The Brevo API key is **not** an env var — you set it inside the app:
 
 **"No credits deducted" / "nothing received" — read this first.** The Email
 tab's **Connected Brevo account** strip shows the live account behind your
-key (e.g. `sam.p@medstalent.com — free · 300 emails/day`), so there's no
+key (e.g. `your.account@example.com — free · 300 emails/day`), so there's no
 guessing which dashboard to watch:
 
 1. **Check Brevo → Transactional → Events first.** If you see the error
@@ -130,14 +130,14 @@ guessing which dashboard to watch:
    delivery guarantee.** Delivery truth lives only in Brevo's Events view.
 4. Once sending works: a sender on a free-mail domain (gmail.com, …)
    cannot have Brevo SPF/DKIM records and often lands in **spam**. Verify
-   a sender on a domain you own (e.g. `no-reply@medstalent.com`) with
+   a sender on a domain you own (e.g. `no-reply@yourdomain.com`) with
    Brevo's DNS records, then switch the sender in the Email tab — the
    strip flags this automatically with a deliverability warning.
 
 ### GSA Per Diem key (optional, for the calculator's live fetch)
 
 1. Get a free key at [api.data.gov/sign-up](https://api.data.gov/sign-up/).
-2. Superadmin → Keys & access → **GSA Per Diem API key (shared)** → paste → Save.
+2. Admin console → Keys & access → **GSA Per Diem API key (shared)** → paste → Save.
 
 Users can also add a personal GSA key in their own Settings; it overrides the
 shared one for their account only.
@@ -154,9 +154,9 @@ shared one for their account only.
    optionally N/A, signs their name, submits — no account needed.
 3. **Recruiter** sees per-category averages (N/A excluded), overall score out
    of 4, the digital signature, and skill-by-skill ratings in the detail view.
-4. **Superadmin** maintains the skills library itself: Excel import
-   (MyZipVault `Skills Data` format), add/edit/delete skills, rename/delete
-   professions & job titles — in **Superadmin → Skills data**.
+4. **The platform admin** maintains the skills library itself: Excel import
+   (`Skills Data` format), add/edit/delete skills, rename/delete
+   professions & job titles — in **Admin console → Skills data**.
 5. **Calculator**: enter bill/pay rates → margin, overtime blend, traveler
    stipend split with min-W2 floor → **Save calculation** → reload any past run.
 
@@ -164,7 +164,7 @@ shared one for their account only.
 
 - `bun run lint` — code quality
 - `npx prisma studio` — inspect the database
-- Superadmin → Email → Send log — audit every email attempt
-- Superadmin → Checklist data — every checklist & response, exportable as CSV
-- Superadmin → Skills data — import/export the skills library (MyZipVault
+- Admin console → Email → Send log — audit every email attempt
+- Admin console → Checklist data — every checklist & response, exportable as CSV
+- Admin console → Skills data — import/export the skills library (the
   `Skills Data` xlsx format)

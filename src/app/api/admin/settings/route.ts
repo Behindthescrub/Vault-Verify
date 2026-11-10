@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
     // getPlatformSettings). No-op on read-only hosts.
     writePlatformBackup({
       brevoApiKey: s?.brevoApiKey ?? null,
-      brevoSenderEmail: s?.brevoSenderEmail ?? 'myzipvault@gmail.com',
+      brevoSenderEmail: s?.brevoSenderEmail ?? 'noreply@example.com',
       brevoSenderName: s?.brevoSenderName ?? 'VaultVerify',
       emailTestMode: s?.emailTestMode ?? true,
       gsaApiKey: s?.gsaApiKey ?? null,

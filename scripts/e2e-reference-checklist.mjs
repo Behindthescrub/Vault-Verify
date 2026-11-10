@@ -51,7 +51,7 @@ async function main() {
       title: 'Healthcare Leadership Skill Checklist',
       templateId: TEMPLATE_ID,
       candidateName: 'sswws',
-      candidateEmail: 'shaswatpandey0047@gmail.com',
+      candidateEmail: 'candidate@example.com',
     }),
   })
   const created = await create.json()

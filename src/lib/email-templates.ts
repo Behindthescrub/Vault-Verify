@@ -1,5 +1,5 @@
 // SMTP email templates — the full branded set the platform sends.
-// Managed by the superadmin (Email tab): subject + HTML body per template,
+// Managed by the platform admin (Email tab): subject + HTML body per template,
 // live preview, per-template test send, reset to default.
 //
 // Templates are stored in the EmailTemplate table; rows are created lazily
@@ -116,7 +116,7 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
         '<p style="color:#334155">We have a travel ICU position opening next month — this checklist is the first step.</p>',
       valid_days: '30',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
     },
   },
   {
@@ -154,7 +154,7 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
       personal_message: '',
       valid_days: '30',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
     },
   },
   {
@@ -204,7 +204,7 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
       signed_name: 'Jordan Rivera',
       valid_days: '30',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
     },
   },
   {
@@ -254,7 +254,7 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
       link: 'https://your-app.example.com/',
       valid_days: '30',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
     },
   },
   {
@@ -296,13 +296,13 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
       link: 'https://your-app.example.com/',
       valid_days: '30',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
     },
   },
   {
     key: 'platform_test',
     name: 'Platform test email',
-    description: 'Sent by the superadmin "Send test email" buttons to verify Brevo delivery.',
+    description: 'Sent by the "Send test email" buttons to verify email delivery.',
     purpose: 'test',
     automated: false,
     subject: 'VaultVerify — test email',
@@ -333,7 +333,7 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     sampleVars: {
       mode: 'LIVE',
       sender_name: 'VaultVerify',
-      sender_email: 'myzipvault@gmail.com',
+      sender_email: 'noreply@yourdomain.com',
       template_name: 'Platform test email',
       sent_at: 'Nov 11, 2026, 3:05 PM',
       valid_days: '30',

@@ -7,8 +7,12 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { verifyPassword, createSession, hashPassword } from '@/lib/auth'
 
-const DEFAULT_SUPERADMIN_EMAIL = 'admin@recruitertool.local'
-const DEFAULT_SUPERADMIN_PASSWORD = 'Superadmin@123' // change in Keys & access after first login
+// Default credentials only apply when the platform has NO admin account at
+// all (fresh database / self-heal). Override at deploy time by setting the
+// SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD env vars — never commit real
+// credentials. The password can also be changed in the console (Keys & access).
+const DEFAULT_SUPERADMIN_EMAIL = (process.env.SUPERADMIN_EMAIL || 'admin@recruitertool.local').toLowerCase()
+const DEFAULT_SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Superadmin@123'
 
 const schema = z.object({
   username: z.string().min(1).max(200),

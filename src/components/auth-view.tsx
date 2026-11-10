@@ -67,8 +67,8 @@ export function AuthView({ onAuthed }: Props) {
                 text="Send RN / LPN / CNA / PT / OT / RT checklists to candidates by email, or enter their ratings yourself." />
               <Feature icon={<Calculator className="w-4 h-4" />} title="Bill-to-Pay calculator"
                 text="Margin, overtime, traveler stipend splits and GSA per-diem — every run saved and reloadable." />
-              <Feature icon={<Mail className="w-4 h-4" />} title="Brevo email"
-                text="Checklist invitations sent straight from the app. API key managed by the superadmin." />
+              <Feature icon={<Mail className="w-4 h-4" />} title="Email invitations"
+                text="Checklist invitations go out straight from the app — candidates never need an account." />
             </div>
           </div>
           <div className="text-[12px] text-[#7FA893] flex items-center gap-2">
@@ -133,16 +133,6 @@ export function AuthView({ onAuthed }: Props) {
             {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
           </button>
 
-          {mode === 'login' && (
-            <div className="mt-6 pt-5 border-t border-[#eef1f6] flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#1F7A44] shrink-0" />
-              <span className="text-[12px] text-[#64748b]">Platform administrator?</span>
-              <a href="/superadmin"
-                className="text-[12px] font-bold text-[#1F7A44] hover:text-[#1E6B3C] inline-flex items-center gap-1">
-                Superadmin console →
-              </a>
-            </div>
-          )}
         </div>
       </div>
     </div>

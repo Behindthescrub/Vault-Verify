@@ -17,8 +17,8 @@ echo "== server ready (code=$code) =="
 AB="agent-browser"
 $AB set viewport 1440 900 || true
 
-echo; echo "======== SUPERADMIN: /superadmin ========"
-$AB open http://localhost:3000/superadmin || true
+echo; echo "======== ADMIN CONSOLE: /console ========"
+$AB open http://localhost:3000/console || true
 $AB wait --load networkidle 2>/dev/null || true
 $AB wait 1500
 $AB find label "Username" fill "admin" || $AB fill "#sa-username" "admin" || true
@@ -33,7 +33,7 @@ $AB find text "Email" click || true
 $AB wait 1500
 $AB screenshot /tmp/rt-email-tab.png || true
 echo "--- email tab snapshot (relevant lines) ---"
-$AB snapshot | grep -Ei 'brevo|sender|vaultverify|myzipvault|test mode|xkeysib|xsmtp|current key' || echo "(no match in snapshot)"
+$AB snapshot | grep -Ei 'email provider|sender|vaultverify|test mode|current key|api key' || echo "(no match in snapshot)"
 
 echo; echo "======== Keys & access tab ========"
 $AB find text "Keys & access" click || true
