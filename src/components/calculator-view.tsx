@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/number-input'
 import { api } from '@/lib/client-api'
 import { computeCalc, money } from '@/lib/calc'
 import type { SavedCalculation, UserSettings } from '@/lib/types'
@@ -497,12 +498,11 @@ function NumField({ label, hint, value, onChange, step = 1, amber }: {
         {label}
         {hint && <span className={`block text-[10.5px] font-medium tracking-normal normal-case mt-0.5 ${amber ? 'text-[#a16207]' : 'text-[#94a3b8]'}`}>{hint}</span>}
       </span>
-      <input type="number" value={value} step={step} min={0}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-        className={`w-full h-[46px] rounded-xl border px-3.5 text-[14px] font-medium outline-none transition-[border-color,box-shadow] tabular-nums ${
+      <NumberInput value={value} onChange={onChange} step={step} min={0}
+        className={`h-[46px] rounded-xl ${
           amber
-            ? 'border-[#fde68a] bg-white focus:border-[#f59e0b] focus:ring-4 focus:ring-[rgba(245,158,11,0.12)]'
-            : 'border-[#d8dee9] bg-white focus:border-[#1F7A44] focus:ring-4 focus:ring-[rgba(31,122,68,0.12)]'
+            ? 'border-[#fde68a] focus:border-[#f59e0b] focus:ring-[rgba(245,158,11,0.12)]'
+            : ''
         }`} />
     </label>
   )

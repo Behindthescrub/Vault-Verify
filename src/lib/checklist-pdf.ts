@@ -58,7 +58,7 @@ function lpTone(v: string | undefined): { bg: string; fg: string; icon: string }
   switch (v) {
     case '3m': return { bg: C.navy, fg: '#FFFFFF', icon: '#FFFFFF' }
     case '6m': return { bg: C.blueGray, fg: '#FFFFFF', icon: '#FFFFFF' }
-    case '6m+': return { bg: C.lpGrayBg, fg: '#6B7A72', icon: '#8CA096' }
+    case '6m+': return { bg: C.lpGrayBg, fg: '#55645C', icon: '#8CA096' }
     default: return { bg: C.pillGrayBg, fg: C.muted, icon: C.muted }
   }
 }
@@ -83,12 +83,11 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
   const stats = summarizeChecklist(data.items, ratings, lastPerformed)
 
   const parts = data.templateLabel.split('|').map((p) => p.trim())
+  const profession = parts.length === 3 ? parts[0] : ''
   const jobTitle = parts.length === 3 ? parts[1] : ''
   const specialty = parts.length === 3 ? parts[2] : ''
   const name = data.candidateName ?? 'Candidate'
   const runningTitle = `${name}${jobTitle ? `, ${jobTitle}` : ''}${specialty ? ` (${specialty.toUpperCase()})` : ''}`
-  const isManual = data.submittedVia === 'manual'
-  const source = isManual ? 'Entered by recruiter' : data.submittedVia === 'link' ? 'Requested by a recruiter' : '—'
   const experience = data.additional?.experienceYears
   const avg = stats.avg
 
@@ -113,6 +112,7 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
   // table-mode state for page breaks
   let inTable = false
   let tableCategory: string | null = null
+  let pageWithHeader: unknown = null // page object that already has the table header
 
   function newPage() {
     doc.addPage()
@@ -242,6 +242,8 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
   }
 
   function drawTableHeader() {
+    if (pageWithHeader === doc.page) return // one header per page (idempotent)
+    pageWithHeader = doc.page
     doc.roundedRect(M + 2, y, CW - 4, 23, 8).fill(C.band1)
     text('Skill', M + 12, y + 7.5, { size: 8, font: 'Helvetica-Bold', color: C.white, lineBreak: false })
     text('Rating', M + 300, y + 7.5, { width: 100, align: 'center', size: 8, font: 'Helvetica-Bold', color: C.white, lineBreak: false })
@@ -294,7 +296,7 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
     metaRow('Completed', fmtDate(data.completedAt), cols[1], c2 - 6, y + 12)
     metaRow('Valid until', data.validUntil ? `${fmtDate(data.validUntil)} (${VALIDITY_DAYS} days)` : '—', cols[2], c3 - 2, y + 12)
     metaRow('Self-reported experience', experience != null ? `${experience} yr(s)` : '—', cols[0], c1 - 6, y + 42)
-    metaRow('Source', source, cols[1], c2 + c3 - 6, y + 42)
+    metaRow('Profession', profession || '—', cols[1], c2 + c3 - 6, y + 42)
     y += cardH + 12
   }
 
@@ -362,8 +364,8 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
       text(c.category, M + 14, ry, { size: 8, font: 'Helvetica-Bold', color: C.text, lineBreak: false, width: 150 })
       progressBar(M + 170, ry + 1, 112, (c.avg ?? 0) / 4)
       text(c.avg != null ? c.avg.toFixed(1) : '—', M + 296, ry, { size: 9, font: 'Helvetica-Bold', color: C.heading, lineBreak: false })
-      text(`${c.proficient} of ${c.total} Proficient`, M + 312, ry, { size: 7, color: C.label, lineBreak: false })
-      if (hasLp) text(`${c.recent} of ${c.total} recent`, M + 404, ry, { size: 7, color: C.label, lineBreak: false, width: 118, align: 'right' })
+      text(`${c.proficient}/${c.total} Proficient`, M + 318, ry, { size: 7, color: C.label, lineBreak: false })
+      if (hasLp) text(`${c.recent}/${c.total} recent`, M + 404, ry, { size: 7, color: C.label, lineBreak: false, width: 118, align: 'right' })
     })
     let ly0 = y + 36 + rows.length * 22 + 10
     if (hasLp) {
@@ -385,55 +387,89 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
     let lx2 = M + 14 + textW('Last performed', 8, 'Helvetica-Bold') + 14
     for (const o of LAST_PERFORMED_OPTIONS) {
       const w = pill(lx2, ly0, o.label, o.value === '3m' ? C.navy : o.value === '6m' ? C.blueGray : o.value === '6m+' ? C.lpGrayBg : C.pillGrayBg,
-        o.value === '3m' || o.value === '6m' ? '#FFFFFF' : o.value === '6m+' ? '#6B7A72' : C.muted, 6.5, { clock: true })
+        o.value === '3m' || o.value === '6m' ? '#FFFFFF' : o.value === '6m+' ? '#55645C' : C.muted, 6.5, { clock: true })
       lx2 += w + 8
     }
     y += cardH + 14
   }
 
   // ── Skills table (rows sit directly on the white page, as in the reference) ──
+  // Keep-together pagination: a category never starts at the very bottom of a
+  // page (group bar + <3 rows), and a split always leaves ≥2 rows on each side,
+  // so no page opens or closes with a single orphaned skill row. The header row
+  // is drawn per page, lazily, only when a category actually renders on it —
+  // never stranded above an empty area.
   inTable = true
-  drawTableHeader()
+  const BAR_H = 19, ROW_H = 16.5
+  const renderCatBar = (label: string) => {
+    doc.roundedRect(M + 2, y, CW - 4, 16, 4).fill(C.mintBar)
+    text(label, M + 10, y + 4.5, { size: 7.5, font: 'Helvetica-Bold', color: C.heading, lineBreak: false })
+    y += BAR_H
+  }
+  const renderRow = (s: { name: string; questionType: string }) => {
+    ensure(ROW_H + 3)
+    const v = ratings[s.name] as RatingValue | undefined
+    const lp = lastPerformed?.[s.name]
+    // name
+    let nm = s.name
+    while (textW(nm, 8) > 280 && nm.length > 4) nm = nm.slice(0, -2)
+    if (nm !== s.name) nm = nm.slice(0, -1) + '…'
+    text(nm, M + 12, y + 4, { size: 8, color: C.text, lineBreak: false })
+    // rating cell
+    if (typeof v === 'number') {
+      const tone = ratingTone(v)!
+      badge(M + 352, y + 8, v, tone.ring)
+      pill(M + 362, y + 1.5, ratingShortLabel(v), tone.pillBg, tone.pillFg)
+    } else if (v === 'na') {
+      pill(M + 362, y + 1.5, 'N/A', C.pillGrayBg, C.label)
+    } else {
+      text('—', M + 348, y + 4, { width: 16, align: 'center', size: 8, color: C.paleGray, lineBreak: false })
+    }
+    // last performed cell
+    if (hasLp && lp) {
+      const t = lpTone(lp)
+      const label = LAST_PERFORMED_OPTIONS.find((o) => o.value === lp)?.label ?? '—'
+      pill(M + CW - 12, y + 1.5, label, t.bg, t.fg, 6.5, { right: true, clock: true })
+    } else {
+      text('—', M + CW - 24, y + 4, { width: 16, align: 'right', size: 8, color: C.paleGray, lineBreak: false })
+    }
+    // row divider
+    doc.moveTo(M + 8, y + 16).lineTo(M + CW - 8, y + 16).lineWidth(0.4).strokeColor(C.rowLine).stroke()
+    y += ROW_H
+  }
   for (const cat of data.items) {
     const ratedSkills = cat.skills.filter((s) => s.questionType === 'rating_1_4')
     if (ratedSkills.length === 0) continue
-    // group bar
-    ensure(40)
-    doc.roundedRect(M + 2, y, CW - 4, 16, 4).fill(C.mintBar)
-    text(cat.category, M + 10, y + 4.5, { size: 7.5, font: 'Helvetica-Bold', color: C.heading, lineBreak: false })
-    y += 19
     tableCategory = cat.category
-    for (const s of cat.skills) {
-      if (s.questionType !== 'rating_1_4') continue
-      ensure(18)
-      const v = ratings[s.name] as RatingValue | undefined
-      const lp = lastPerformed?.[s.name]
-      // name
-      let nm = s.name
-      while (textW(nm, 8) > 280 && nm.length > 4) nm = nm.slice(0, -2)
-      if (nm !== s.name) nm = nm.slice(0, -1) + '…'
-      text(nm, M + 12, y + 4, { size: 8, color: C.text, lineBreak: false })
-      // rating cell
-      if (typeof v === 'number') {
-        const tone = ratingTone(v)!
-        badge(M + 352, y + 8, v, tone.ring)
-        pill(M + 362, y + 1.5, ratingShortLabel(v), tone.pillBg, tone.pillFg)
-      } else if (v === 'na') {
-        pill(M + 362, y + 1.5, 'N/A', C.pillGrayBg, C.label)
-      } else {
-        text('—', M + 348, y + 4, { width: 16, align: 'center', size: 8, color: C.paleGray, lineBreak: false })
-      }
-      // last performed cell
-      if (hasLp && lp) {
-        const t = lpTone(lp)
-        const label = LAST_PERFORMED_OPTIONS.find((o) => o.value === lp)?.label ?? '—'
-        pill(M + CW - 12, y + 1.5, label, t.bg, t.fg, 6.5, { right: true, clock: true })
-      } else {
-        text('—', M + CW - 24, y + 4, { width: 16, align: 'right', size: 8, color: C.paleGray, lineBreak: false })
-      }
-      // row divider
-      doc.moveTo(M + 8, y + 16).lineTo(M + CW - 8, y + 16).lineWidth(0.4).strokeColor(C.rowLine).stroke()
-      y += 16.5
+    // The header row consumes 27pt the first time it is drawn on a page —
+    // the fit math must include it, or the last row spills onto the next
+    // page as an orphan under a "(continued)" band.
+    const headerH = pageWithHeader === doc.page ? 0 : 27
+    const catH = headerH + BAR_H + ratedSkills.length * ROW_H
+    if (y + catH <= BOTTOM) {
+      drawTableHeader()
+      renderCatBar(cat.category)
+      for (const s of ratedSkills) renderRow(s)
+      continue
+    }
+    // Split only when both sides keep a decent block: ≥3 rows before the
+    // break and ≥2 rows after it; otherwise move the whole category over.
+    const fitRows = Math.max(0, Math.floor((BOTTOM - y - headerH - BAR_H) / ROW_H))
+    if (fitRows >= 3 && ratedSkills.length - fitRows >= 2) {
+      drawTableHeader()
+      renderCatBar(cat.category)
+      for (const s of ratedSkills.slice(0, fitRows)) renderRow(s)
+      newPage() // inTable → repeats the header + "(continued)" band
+      for (const s of ratedSkills.slice(fitRows)) renderRow(s)
+    } else {
+      // Fresh page for the whole category. tableCategory must be cleared
+      // first: newPage() (inside ensure) would otherwise draw a "(continued)"
+      // band here too, stacking a duplicate band above the plain one.
+      tableCategory = null
+      ensure(catH)
+      tableCategory = cat.category
+      renderCatBar(cat.category)
+      for (const s of ratedSkills) renderRow(s)
     }
   }
   inTable = false
@@ -461,7 +497,7 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
           if (a === 'yes') {
             pill(M + CW - 10, y + 2, 'Yes', C.greenDeep, '#FFFFFF', 6.5, { right: true, dot: true })
           } else if (a === 'no') {
-            pill(M + CW - 10, y + 2, 'No', '#E0E0E0', '#9E9E9E', 6.5, { right: true })
+            pill(M + CW - 10, y + 2, 'No', '#475569', '#FFFFFF', 6.5, { right: true })
           } else {
             text('—', M + CW - 22, y + 4, { width: 16, align: 'right', size: 8, color: C.paleGray, lineBreak: false })
           }
@@ -488,17 +524,9 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
     }
   }
 
-  // ── Candidate attestation / manual note ──
+  // ── Candidate attestation ──
   ensure(120)
-  if (isManual) {
-    const cardH = 64
-    doc.roundedRect(M, y, CW, cardH, 10).fill(C.mintSoft)
-    doc.rect(M, y, 4, cardH).fill(C.green)
-    text('Recruiter-entered record', M + 16, y + 12, { size: 11, font: 'Helvetica-Bold', color: C.heading, lineBreak: false })
-    text('This checklist was entered manually by the recruiter, based on the candidate\u2019s self-reported answers (phone call, text or paper copy). No candidate attestation was captured.',
-      M + 16, y + 30, { size: 7.5, color: C.label, width: CW - 34 })
-    y += cardH + 12
-  } else {
+  {
     const cardH = 128
     doc.roundedRect(M, y, CW, cardH, 10).fill(C.mintSoft)
     doc.rect(M, y, 4, cardH).fill(C.green)
@@ -516,34 +544,36 @@ export async function renderChecklistPdf(data: SerializedChecklistDetail): Promi
       text(item, M + 34, iy, { size: 7.5, color: C.text, width: CW - 60 })
       iy += Math.max(12, Math.ceil(h) * 9.5 + 4)
     }
-    // signature columns
+    // signature columns — fill the card evenly (right column ends at the card's right padding)
     const sy = y + cardH - 36
-    const colW = (CW - 60) / 3
+    const c1x = M + 16, c1w = 200
+    const c2x = M + 232, c2w = 156
+    const c3x = M + 396, c3w = 120
     // 1. signature
-    doc.moveTo(M + 16, sy + 24).lineTo(M + 16 + colW - 10, sy + 24).lineWidth(0.6).strokeColor('#999999').stroke()
-    text(data.signedName ?? data.printedName ?? name, M + 16, sy + 6, { size: 13, font: 'Helvetica-Oblique', color: C.heading, lineBreak: false, width: colW - 10 })
-    text('Candidate signature', M + 16, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
-    text('Signed electronically', M + 16 + colW - 10 - textW('Signed electronically', 6.5, 'Helvetica-Bold'), sy + 28, { size: 6.5, font: 'Helvetica-Bold', color: C.greenDeep, lineBreak: false })
+    doc.moveTo(c1x, sy + 24).lineTo(c1x + c1w - 10, sy + 24).lineWidth(0.6).strokeColor('#999999').stroke()
+    text(data.signedName ?? data.printedName ?? name, c1x, sy + 6, { size: 13, font: 'Helvetica-Oblique', color: C.heading, lineBreak: false, width: c1w - 10 })
+    text('Candidate signature', c1x, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
+    text('Signed electronically', c1x + c1w - 10 - textW('Signed electronically', 6.5, 'Helvetica-Bold'), sy + 28, { size: 6.5, font: 'Helvetica-Bold', color: C.greenDeep, lineBreak: false })
     // 2. printed name
-    const p2x = M + 20 + colW
-    doc.moveTo(p2x, sy + 24).lineTo(p2x + colW - 14, sy + 24).lineWidth(0.6).strokeColor(C.divider).stroke()
-    text(data.printedName ?? data.signedName ?? name, p2x, sy + 8, { size: 9, font: 'Helvetica-Bold', color: C.text, lineBreak: false, width: colW - 14 })
-    text('Printed name', p2x, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
+    doc.moveTo(c2x, sy + 24).lineTo(c2x + c2w - 12, sy + 24).lineWidth(0.6).strokeColor(C.divider).stroke()
+    text(data.printedName ?? data.signedName ?? name, c2x, sy + 8, { size: 9, font: 'Helvetica-Bold', color: C.text, lineBreak: false, width: c2w - 12 })
+    text('Printed name', c2x, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
     // 3. date
-    const p3x = M + 24 + colW * 2
-    doc.moveTo(p3x, sy + 24).lineTo(p3x + colW - 14, sy + 24).lineWidth(0.6).strokeColor(C.divider).stroke()
-    text(fmtDate(data.completedAt), p3x, sy + 8, { size: 9, font: 'Helvetica-Bold', color: C.text, lineBreak: false, width: colW - 14 })
-    text('Date', p3x, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
+    doc.moveTo(c3x, sy + 24).lineTo(c3x + c3w, sy + 24).lineWidth(0.6).strokeColor(C.divider).stroke()
+    text(fmtDate(data.completedAt), c3x, sy + 8, { size: 9, font: 'Helvetica-Bold', color: C.text, lineBreak: false, width: c3w })
+    text('Date', c3x, sy + 28, { size: 6.5, color: C.label, lineBreak: false })
     y += cardH + 12
   }
 
   // ── Disclaimer ──
   ensure(40)
-  text(`Self-reported assessment. Completed once by the candidate and valid for ${VALIDITY_DAYS} days. ${isManual
-    ? 'Entered manually by the recruiter.'
-    : `Access was granted to the recruiter who requested this checklist, through ${CHECKLIST_BRAND.name}.`}`,
-    M, y, { size: 7, color: C.muted, width: CW })
-  y += 12
+  {
+    const discl = `Self-reported assessment. Completed once by the candidate and valid for ${VALIDITY_DAYS} days. Access was granted to the recruiter who requested this checklist, through ${CHECKLIST_BRAND.name}.`
+    doc.font('Helvetica').fontSize(7)
+    const dh = doc.heightOfString(discl, { width: CW })
+    text(discl, M, y, { size: 7, color: C.muted, width: CW })
+    y += dh + 5
+  }
   const genDate = fmtDate(data.completedAt)
   const genW = textW(`Generated ${genDate} by `, 7) + textW(CHECKLIST_BRAND.name, 7, 'Helvetica-Bold') + textW('.', 7)
   text(`Generated ${genDate} by `, M, y, { size: 7, color: C.muted, lineBreak: false })

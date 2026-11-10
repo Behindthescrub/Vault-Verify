@@ -8,10 +8,10 @@ import { api } from '@/lib/client-api'
 import type { ChecklistDetail } from '@/lib/types'
 import { RatingPills, ScaleLegend } from '@/components/rating'
 import {
-  ADDITIONAL_SECTIONS, LAST_PERFORMED_OPTIONS,
+  ADDITIONAL_SECTIONS, ATTESTATION, LAST_PERFORMED_OPTIONS,
   type RatingValue, type LastPerformedValue,
 } from '@/lib/skills-shared'
-import { ArrowLeft, Check, Loader2, UserPen } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle2, Loader2, UserPen } from 'lucide-react'
 
 type Props = {
   id: string
@@ -30,6 +30,8 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [candidateName, setCandidateName] = useState('')
   const [candidateEmail, setCandidateEmail] = useState('')
+  const [signedName, setSignedName] = useState('')
+  const [printedName, setPrintedName] = useState('')
   const [experienceYears, setExperienceYears] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -44,6 +46,8 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
         setExperienceYears(d.checklist.additional?.experienceYears != null ? String(d.checklist.additional.experienceYears) : '')
         setCandidateName(d.checklist.candidateName ?? '')
         setCandidateEmail(d.checklist.candidateEmail ?? '')
+        setSignedName(d.checklist.signedName ?? '')
+        setPrintedName(d.checklist.printedName ?? '')
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
   }, [id])
@@ -73,6 +77,8 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
           additional: { experienceYears: Number.isFinite(years) ? years : null, answers },
           candidateName: candidateName.trim() || undefined,
           candidateEmail: candidateEmail.trim() || undefined,
+          signedName: signedName.trim() || candidateName.trim() || undefined,
+          printedName: printedName.trim() || candidateName.trim() || undefined,
         }),
       })
       onSaved()
@@ -105,7 +111,7 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
             <UserPen className="w-5 h-5" /> Manual entry — {data.title}
           </h1>
           <p className="text-[12.5px] text-[#A8CFB8] m-0 mt-0.5">
-            Record the candidate&apos;s self-reported ratings. Everything saves to their checklist record.
+            Enter the candidate&apos;s responses. Everything saves to their checklist record.
           </p>
         </div>
 
@@ -243,6 +249,34 @@ export function ManualEntry({ id, onBack, onSaved }: Props) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Candidate attestation */}
+        <div className="px-6 sm:px-8 py-5 border-t border-[#eef1f6]">
+          <div className="rounded-2xl px-5 py-4" style={{ background: '#EDF5EF', borderLeft: '4px solid #4CAF50' }}>
+            <div className="text-[13px] font-extrabold" style={{ color: '#0F3D33' }}>Candidate attestation</div>
+            <p className="text-[11px] italic mt-1 mb-3" style={{ color: '#7A8A80' }}>Confirm the candidate agreed to the statements below — the signature appears on the checklist document.</p>
+            <div className="space-y-2">
+              {[ATTESTATION.confirm, ATTESTATION.agree].map((item) => (
+                <div key={item} className="flex gap-2.5 items-start">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-[1px]" style={{ color: '#2E7D32' }} />
+                  <p className="text-[11.5px] leading-relaxed m-0" style={{ color: '#333B37' }}>{item}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate signature (typed)</Label>
+                <Input value={signedName} onChange={(e) => setSignedName(e.target.value)}
+                  placeholder="Type the candidate's name" className="h-10 mt-1.5 bg-white" maxLength={120} />
+              </div>
+              <div>
+                <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Printed name</Label>
+                <Input value={printedName} onChange={(e) => setPrintedName(e.target.value)}
+                  placeholder="Legal full name" className="h-10 mt-1.5 bg-white" maxLength={120} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}

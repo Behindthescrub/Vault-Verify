@@ -22,6 +22,8 @@ const schema = z.object({
   additional: additionalSchema.optional(),
   candidateName: z.string().trim().max(120).optional(),
   candidateEmail: z.string().email().optional(),
+  signedName: z.string().trim().max(120).optional(),
+  printedName: z.string().trim().max(120).optional(),
 })
 
 // POST /api/checklists/[id]/responses — recruiter enters the candidate's
@@ -84,6 +86,8 @@ export async function POST(req: NextRequest, { params }: Params) {
         avgRating: avg,
         validUntil,
         completedAt,
+        signedName: parsed.data.signedName ?? null,
+        printedName: parsed.data.printedName ?? null,
       },
       update: {
         ratingsJson: JSON.stringify(ratings),
@@ -92,6 +96,8 @@ export async function POST(req: NextRequest, { params }: Params) {
         avgRating: avg,
         validUntil,
         completedAt,
+        signedName: parsed.data.signedName ?? null,
+        printedName: parsed.data.printedName ?? null,
       },
     })
     await db.checklist.update({

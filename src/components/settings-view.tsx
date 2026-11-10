@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { NumberInput } from '@/components/number-input'
 import { api } from '@/lib/client-api'
 import type { AppUser, UserSettings } from '@/lib/types'
 import { Briefcase, Check, Image as ImageIcon, Loader2, Settings2 } from 'lucide-react'
@@ -101,12 +102,12 @@ export function SettingsView({ user, settings, onSettingsChange }: Props) {
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Default onboarding (%)</Label>
-              <Input type="number" value={onboarding} min={0} max={100} step={0.01} onChange={(e) => setOnboarding(Number(e.target.value) || 0)} className="h-11 mt-1.5" />
+              <NumberInput value={onboarding} onChange={setOnboarding} step={0.01} min={0} max={100} className="h-11 mt-1.5" />
               <p className="text-[11px] text-[#94a3b8] mt-1.5">Payroll burden, drug/background test, tools — the all-in overhead.</p>
             </div>
             <div>
               <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Minimum W2 pay ($/hr)</Label>
-              <Input type="number" value={minW2} min={0} step={0.01} onChange={(e) => setMinW2(Number(e.target.value) || 0)} className="h-11 mt-1.5" />
+              <NumberInput value={minW2} onChange={setMinW2} step={0.01} min={0} className="h-11 mt-1.5" />
               <p className="text-[11px] text-[#94a3b8] mt-1.5">Hard floor for W2 hourly — the calculator shifts stipend money into W2 to keep it.</p>
             </div>
           </div>

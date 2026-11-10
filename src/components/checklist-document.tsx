@@ -70,11 +70,10 @@ export function ChecklistDocument({ data, className = '' }: Props) {
   )
 
   const parts = data.templateLabel.split('|').map((p) => p.trim())
+  const profession = parts.length === 3 ? parts[0] : ''
   const jobTitle = parts.length === 3 ? parts[1] : ''
   const specialty = parts.length === 3 ? parts[2] : ''
   const name = data.candidateName ?? 'Candidate'
-  const isManual = data.submittedVia === 'manual'
-  const source = isManual ? 'Entered by recruiter' : data.submittedVia === 'link' ? 'Requested by a recruiter' : '—'
   const experience = data.additional?.experienceYears
   const initial = name.trim().charAt(0).toUpperCase() || '?'
 
@@ -137,7 +136,7 @@ export function ChecklistDocument({ data, className = '' }: Props) {
               <MetaItem label="Completed" value={fmtDate(data.completedAt)} />
               <MetaItem label="Valid until" value={data.validUntil ? `${fmtDate(data.validUntil)} (${VALIDITY_DAYS} days)` : '—'} />
               <MetaItem label="Self-reported experience" value={experience != null ? `${experience} yr(s)` : '—'} />
-              <MetaItem label="Source" value={source} />
+              <MetaItem label="Profession" value={profession || '—'} />
             </div>
           </div>
         </div>
@@ -208,9 +207,9 @@ export function ChecklistDocument({ data, className = '' }: Props) {
                 <div className="text-[12px] font-extrabold tabular-nums w-7 text-right" style={{ color: avgColor(c.avg) }}>
                   {c.avg != null ? c.avg.toFixed(1) : '—'}
                 </div>
-                <span className="text-[10px] font-semibold tabular-nums" style={{ color: '#66756E' }}>{c.proficient} of {c.total} Proficient</span>
+                <span className="text-[10px] font-semibold tabular-nums" style={{ color: '#66756E' }}>{c.proficient}/{c.total} Proficient</span>
                 {hasLp && (
-                  <span className="text-[10px] font-semibold tabular-nums ml-auto" style={{ color: '#66756E' }}>{c.recent} of {c.total} recent</span>
+                  <span className="text-[10px] font-semibold tabular-nums ml-auto" style={{ color: '#66756E' }}>{c.recent}/{c.total} recent</span>
                 )}
               </div>
             ))}
@@ -316,7 +315,7 @@ export function ChecklistDocument({ data, className = '' }: Props) {
                             <span className="w-[7px] h-[7px] rounded-full bg-white" />Yes
                           </span>
                         ) : a === 'no' ? (
-                          <span className="text-[9.5px] font-bold px-3 py-1 rounded-full" style={{ background: '#E0E0E0', color: '#9E9E9E' }}>No</span>
+                          <span className="text-[9.5px] font-bold px-3 py-1 rounded-full text-white" style={{ background: '#475569' }}>No</span>
                         ) : (
                           <span className="text-[11px]" style={{ color: '#C9D2D6' }}>—</span>
                         )
@@ -337,15 +336,6 @@ export function ChecklistDocument({ data, className = '' }: Props) {
         </div>
 
         {/* ─── Candidate attestation ─────────────────────────────── */}
-        {isManual ? (
-          <div className="doc-avoid-break rounded-xl px-5 py-4" style={{ background: '#EDF5EF', borderLeft: '4px solid #4CAF50' }}>
-            <div className="text-[13px] font-extrabold" style={{ color: '#0F3D33' }}>Recruiter-entered record</div>
-            <p className="text-[11px] mt-1.5 mb-0 leading-relaxed" style={{ color: '#66756E' }}>
-              This checklist was entered manually by the recruiter, based on the candidate&apos;s self-reported answers
-              (phone call, text or paper copy). No candidate attestation was captured.
-            </p>
-          </div>
-        ) : (
           <div className="doc-avoid-break rounded-xl px-5 py-4" style={{ background: '#EDF5EF', borderLeft: '4px solid #4CAF50' }}>
             <div className="text-[13px] font-extrabold" style={{ color: '#0F3D33' }}>{ATTESTATION.heading}</div>
             <p className="text-[10px] italic mt-1 mb-3" style={{ color: '#7A8A80' }}>{ATTESTATION.intro}</p>
@@ -361,7 +351,7 @@ export function ChecklistDocument({ data, className = '' }: Props) {
               <div>
                 <div className="text-[24px] leading-none pb-1.5 border-b border-[#999999]"
                   style={{ fontFamily: "'Segoe Script', 'Bradley Hand', 'Brush Script MT', 'Comic Sans MS', cursive", color: '#0F3D33' }}>
-                  {data.signedName ?? data.printedName ?? '—'}
+                  {data.signedName ?? data.printedName ?? name}
                 </div>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-[9px] font-semibold" style={{ color: '#66756E' }}>Candidate signature</span>
@@ -370,7 +360,7 @@ export function ChecklistDocument({ data, className = '' }: Props) {
               </div>
               <div>
                 <div className="text-[12px] font-bold pb-1.5 border-b border-[#E0E5E2]" style={{ color: '#333B37' }}>
-                  {data.printedName ?? data.signedName ?? '—'}
+                  {data.printedName ?? data.signedName ?? name}
                 </div>
                 <div className="text-[9px] font-semibold mt-1" style={{ color: '#66756E' }}>Printed name</div>
               </div>
@@ -382,15 +372,12 @@ export function ChecklistDocument({ data, className = '' }: Props) {
               </div>
             </div>
           </div>
-        )}
 
         {/* ─── Document footer ───────────────────────────────────── */}
         <div className="px-1 pt-1 pb-2">
           <p className="text-[10px] leading-relaxed m-0" style={{ color: '#8CA096' }}>
             Self-reported assessment. Completed once by the candidate and valid for {VALIDITY_DAYS} days.{' '}
-            {isManual
-              ? 'Entered manually by the recruiter.'
-              : `Access was granted to the recruiter who requested this checklist, through ${CHECKLIST_BRAND.name}.`}
+            Access was granted to the recruiter who requested this checklist, through {CHECKLIST_BRAND.name}.
           </p>
           <p className="text-[10px] mt-1 mb-0" style={{ color: '#8CA096' }}>
             Generated {fmtDate(data.completedAt)} by <span className="font-bold" style={{ color: '#0F3D33' }}>{CHECKLIST_BRAND.name}</span>.
@@ -438,7 +425,7 @@ function LpPill({ value, label }: { value: string; label: string }) {
   const styles: Record<string, { bg: string; fg: string; icon: string }> = {
     '3m': { bg: '#1E3A5F', fg: '#FFFFFF', icon: '#FFFFFF' },
     '6m': { bg: '#5B7A99', fg: '#FFFFFF', icon: '#FFFFFF' },
-    '6m+': { bg: '#E3E8EA', fg: '#6B7A72', icon: '#8CA096' },
+    '6m+': { bg: '#E3E8EA', fg: '#55645C', icon: '#8CA096' },
     na: { bg: '#EEF1F2', fg: '#8CA096', icon: '#8CA096' },
   }
   const s = styles[value] ?? styles.na

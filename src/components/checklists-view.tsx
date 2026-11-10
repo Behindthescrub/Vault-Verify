@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { api } from '@/lib/client-api'
 import type { ChecklistSummary } from '@/lib/types'
 import type { SnapshotCategory, SnapshotSkill } from '@/lib/skills-shared'
-import { CheckSquare, ChevronRight, ClipboardCheck, Copy, Eye, Link2, Loader2, Mail, Plus, Search, Send, Trash2, UserPen } from 'lucide-react'
+import { CheckSquare, Check, ChevronRight, ClipboardCheck, Copy, Eye, Link2, ListTree, Loader2, Mail, Plus, Search, Send, Trash2, UserPen, X } from 'lucide-react'
 
 type TemplateRow = {
   id: string
@@ -329,12 +329,12 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
 
       {/* ===== New checklist dialog ===== */}
       <Dialog open={newOpen} onOpenChange={(o) => { setNewOpen(o); if (!o) setStep('pick') }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className={step === 'pick' ? 'sm:max-w-3xl max-h-[92vh] overflow-y-auto' : 'sm:max-w-2xl max-h-[90vh] overflow-y-auto'}>
           <DialogHeader>
             <DialogTitle>{step === 'pick' ? 'New skills checklist' : 'Customize skills'}</DialogTitle>
             <DialogDescription>
               {step === 'pick'
-                ? `Pick a template — ${templates.length} profession templates available (Profession → Job Title → Specialty).`
+                ? `Browse by profession or search directly — ${templates.length} profession templates available.`
                 : 'Remove skills you don\u2019t need. Everything left goes to the candidate.'}
             </DialogDescription>
           </DialogHeader>
@@ -345,88 +345,83 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
               <div className="relative">
                 <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <Input value={pickerSearch} onChange={(e) => setPickerSearch(e.target.value)}
-                  placeholder="Search all templates — e.g. “ICU”, “Physical Therapy”, “Endoscopy”…" className="h-11 pl-9" />
+                  onKeyDown={(e) => { if (e.key === 'Enter' && searchResults && searchResults.length > 0) pickTemplate(searchResults[0]) }}
+                  placeholder={templates.length > 0 ? `Search ${templates.length} templates — try “ICU”, “Endoscopy”, “Physical therapy”` : 'Search templates…'}
+                  className="h-11 pl-9 pr-9" />
+                {pickerSearch && (
+                  <button type="button" onClick={() => setPickerSearch('')} title="Clear search"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md text-[#94a3b8] hover:text-[#334155] hover:bg-[#f1f5f9] cursor-pointer focus:outline-none">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {searchResults ? (
                 /* Search results */
-                <div className="space-y-2 max-h-[46vh] overflow-y-auto">
+                <div className="space-y-1.5 max-h-[52vh] overflow-y-auto">
                   {searchResults.length === 0 && (
-                    <div className="text-[13px] text-[#94a3b8] py-4 text-center">No templates match “{pickerSearch}”.</div>
+                    <div className="text-[13px] text-[#94a3b8] py-8 text-center">No templates match “{pickerSearch}”.</div>
                   )}
                   {searchResults.map((t) => (
                     <button key={t.id} type="button" onClick={() => pickTemplate(t)}
-                      className="w-full text-left rounded-2xl border border-[#eaeef5] bg-white p-3.5 hover:border-[#CBE8D6] hover:bg-[#f8fafc] cursor-pointer transition-colors flex items-center gap-3">
+                      className="group w-full text-left rounded-xl border border-[#eaeef5] bg-white px-4 py-3 hover:border-[#9DDBB6] hover:bg-[#f8fafc] cursor-pointer transition-colors flex items-center gap-3">
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-[13.5px] text-[#0f172a] truncate">
-                          <span className="text-[#1F7A44]">{t.jobTitle}</span> · {t.specialty}
+                        <span className="text-[9px] font-bold uppercase tracking-[0.8px] px-2 py-0.5 rounded-md bg-[#f8fafc] border border-[#eef1f6] text-[#94a3b8]">{t.profession}</span>
+                        <div className="font-bold text-[13.5px] text-[#0f172a] mt-1 truncate">
+                          {t.jobTitle} <span className="text-[#94a3b8] font-medium">·</span> <span className="text-[#1F7A44]">{t.specialty}</span>
                         </div>
-                        <div className="text-[11.5px] text-[#94a3b8] mt-0.5">{t.profession} · {t.categoryCount} categories · {t.skillCount} skills</div>
+                        <div className="text-[11px] text-[#94a3b8] mt-0.5 tabular-nums">{t.categoryCount} categories · {t.skillCount} skills</div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-[#c3cbd8] shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-[#c3cbd8] shrink-0 group-hover:text-[#1F7A44] group-hover:translate-x-0.5 transition-all" />
                     </button>
                   ))}
                 </div>
               ) : (
                 /* Cascade picker */
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Profession */}
-                  <div>
-                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">1 · Profession</div>
-                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
-                      {professions.map((p) => (
-                        <button key={p} type="button" onClick={() => chooseProfession(p)}
-                          className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
-                            selProfession === p ? 'bg-[#E9F5EC] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
-                          }`}>
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Job title */}
-                  <div>
-                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">2 · Job title</div>
-                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
-                      {jobTitles.length === 0 && <div className="px-3.5 py-2.5 text-[12px] text-[#94a3b8]">Pick a profession first</div>}
-                      {jobTitles.map((j) => (
-                        <button key={j} type="button" onClick={() => chooseJobTitle(j)}
-                          className={`w-full text-left px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors ${
-                            selJobTitle === j ? 'bg-[#E9F5EC] text-[#3730a3]' : 'bg-white text-[#334155] hover:bg-[#f8fafc]'
-                          }`}>
-                          {j}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Specialty */}
-                  <div>
-                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-[#334155] mb-1.5">3 · Specialty</div>
-                    <div className="rounded-2xl border border-[#eaeef5] divide-y divide-[#eaeef5] overflow-hidden max-h-[38vh] overflow-y-auto">
-                      {specialties.length === 0 && <div className="px-3.5 py-2.5 text-[12px] text-[#94a3b8]">Pick a job title first</div>}
-                      {specialties.map((t) => (
-                        <button key={t.id} type="button" onClick={() => pickTemplate(t)} disabled={loadingSkills}
-                          className="w-full text-left px-3.5 py-2.5 cursor-pointer transition-colors bg-white hover:bg-[#f8fafc] disabled:opacity-50">
-                          <div className="text-[13px] font-bold text-[#334155]">{t.specialty}</div>
-                          <div className="text-[11px] text-[#94a3b8] mt-0.5">{t.categoryCount} categories · {t.skillCount} skills</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <CascadePane step={1} label="Profession" count={professions.length}>
+                    {professions.length === 0
+                      ? <PaneEmpty text="Loading templates…" />
+                      : professions.map((p) => (
+                          <CascadeItem key={p} label={p} selected={selProfession === p} onClick={() => chooseProfession(p)} />
+                        ))}
+                  </CascadePane>
+                  <CascadePane step={2} label="Job title" count={jobTitles.length}>
+                    {jobTitles.length === 0
+                      ? <PaneEmpty text="Choose a profession" />
+                      : jobTitles.map((j) => (
+                          <CascadeItem key={j} label={j} selected={selJobTitle === j} onClick={() => chooseJobTitle(j)} />
+                        ))}
+                  </CascadePane>
+                  <CascadePane step={3} label="Specialty" count={specialties.length}>
+                    {specialties.length === 0
+                      ? <PaneEmpty text={selProfession ? 'Choose a job title' : 'Choose a profession'} />
+                      : specialties.map((t) => (
+                          <CascadeItem key={t.id} label={t.specialty} sub={`${t.categoryCount} categories · ${t.skillCount} skills`}
+                            arrow onClick={() => pickTemplate(t)} disabled={loadingSkills} />
+                        ))}
+                  </CascadePane>
                 </div>
               )}
 
               {loadingSkills && <div className="flex items-center gap-2 text-[13px] text-[#64748b]"><Loader2 className="w-4 h-4 animate-spin" /> Loading skills…</div>}
-              {createError && <div className="text-[13px] font-semibold text-[#E5484D]">{createError}</div>}
+              {createError && <div className="text-[13px] font-semibold text-[#E5484D] bg-[#FDEEEE] border-l-[3px] border-[#E5484D] rounded-md px-3.5 py-2">{createError}</div>}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate name (optional)</Label>
-                  <Input value={candidateName} onChange={(e) => setCandidateName(e.target.value)} placeholder="Jane Doe" className="h-11 mt-1.5" />
+              {/* Candidate (optional) */}
+              <div className="rounded-2xl border border-[#eef1f6] bg-[#f8fafc] px-4 py-4 space-y-3">
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-[#334155]">Candidate (optional)</span>
+                  <span className="text-[11px] text-[#94a3b8]">Pre-fills the invite email and checklist document — you can also add it later.</span>
                 </div>
-                <div>
-                  <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate email (optional)</Label>
-                  <Input type="email" value={candidateEmail} onChange={(e) => setCandidateEmail(e.target.value)} placeholder="jane@email.com" className="h-11 mt-1.5" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate name</Label>
+                    <Input value={candidateName} onChange={(e) => setCandidateName(e.target.value)} placeholder="Jane Doe" className="h-10 mt-1.5 bg-white" maxLength={120} />
+                  </div>
+                  <div>
+                    <Label className="text-[10.5px] uppercase tracking-wider font-bold text-[#334155]">Candidate email</Label>
+                    <Input type="email" value={candidateEmail} onChange={(e) => setCandidateEmail(e.target.value)} placeholder="jane@email.com" className="h-10 mt-1.5 bg-white" maxLength={160} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -531,6 +526,50 @@ export function ChecklistsView({ onOpenDetail, onManualEntry }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+// ─── Template picker building blocks ───────────────────────────────
+
+function CascadePane({ step, label, count, children }: {
+  step: number; label: string; count: number; children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-[#eaeef5] bg-white overflow-hidden flex flex-col">
+      <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[#eef1f6] bg-[#f8fafc] shrink-0">
+        <span className="w-5 h-5 rounded-full bg-[#E9F5EC] text-[#1E6B3C] text-[10px] font-extrabold flex items-center justify-center shrink-0">{step}</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.8px] text-[#334155]">{label}</span>
+        <span className="ml-auto text-[11px] font-semibold text-[#94a3b8] tabular-nums">{count > 0 ? count : ''}</span>
+      </div>
+      <div className="p-1.5 overflow-y-auto no-scrollbar h-[240px] sm:h-[300px]">{children}</div>
+    </div>
+  )
+}
+
+function CascadeItem({ label, sub, selected, arrow, disabled, onClick }: {
+  label: string; sub?: string; selected?: boolean; arrow?: boolean; disabled?: boolean; onClick: () => void
+}) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled}
+      className={`group w-full flex items-center gap-2 rounded-lg px-2.5 py-[7px] text-left cursor-pointer transition-colors ${
+        selected ? 'bg-[#E9F5EC]' : 'hover:bg-[#f1f5f9]'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <span className="flex-1 min-w-0">
+        <span className={`block text-[13px] font-semibold truncate ${selected ? 'text-[#1E6B3C]' : 'text-[#334155]'}`}>{label}</span>
+        {sub && <span className="block text-[10.5px] text-[#94a3b8] mt-0.5 tabular-nums">{sub}</span>}
+      </span>
+      {selected && <Check className="w-3.5 h-3.5 text-[#1F7A44] shrink-0" />}
+      {arrow && !selected && <ChevronRight className="w-3.5 h-3.5 text-[#c3cbd8] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
+    </button>
+  )
+}
+
+function PaneEmpty({ text }: { text: string }) {
+  return (
+    <div className="h-full min-h-[180px] flex flex-col items-center justify-center gap-1.5 text-[#94a3b8] py-8">
+      <ListTree className="w-4 h-4 opacity-60" />
+      <span className="text-[11.5px] font-medium">{text}</span>
     </div>
   )
 }
