@@ -29,7 +29,24 @@ bun run dev                # http://localhost:3000
 ```
 
 Default superadmin login: `admin@recruitertool.local` / `Superadmin@123`
-— change it immediately in **Superadmin → Platform → Credentials**.
+— change it immediately in **Superadmin → Keys & access → Superadmin credentials**.
+
+## Superadmin (platform owner)
+
+One superadmin account owns all platform data, split into five tabs:
+
+| Tab | What lives there |
+| --- | --- |
+| **Overview** | Usage stats — recruiters, checklists, completions, avg score, saved calculator runs, emails sent — plus recent signups & submissions |
+| **Checklist data** | Every skills checklist + candidate response across all recruiter accounts, with status/template filters, search, full score-sheet view, and CSV export |
+| **Users & auth** | All accounts (checklists/runs counts) with **active sessions** — live auth login tokens — and every saved bill-to-pay run |
+| **Email** | Brevo API key, sender identity, test mode, test send, and the send log |
+| **Keys & access** | Shared GSA Per Diem API key and the superadmin credentials |
+
+What deliberately stays **per-user** (not superadmin): each recruiter's calculator
+settings (company name/logo, onboarding default, min-W2, overtime toggle) and their
+own checklists in their workspace. Skill templates (RN/LPN/CNA/PT/OT/RRT) are versioned
+in code (`src/lib/templates.ts`) so every account always gets the same checklist.
 
 ## Deploying (GitHub → Vercel → Supabase → Brevo)
 
@@ -44,6 +61,7 @@ src/lib/                 # auth, email (Brevo), GSA, calculator math, templates
 src/app/api/             # REST API routes
 src/app/page.tsx         # the app (single route, view-switched)
 src/components/          # calculator, checklists, admin, auth UI
+src/components/admin/    # superadmin panels (overview, data, users, email, keys)
 ```
 
 ## Security notes
