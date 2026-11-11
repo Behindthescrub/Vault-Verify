@@ -11,7 +11,7 @@ BASE="http://127.0.0.1:$PORT"
 OUT=/tmp/uishots
 rm -rf $OUT && mkdir -p $OUT
 
-node node_modules/next/dist/bin/next start -p $PORT > /tmp/ui-server.log 2>&1 &
+DATABASE_URL="$DB_URL" node node_modules/next/dist/bin/next start -p $PORT > /tmp/ui-server.log 2>&1 &
 SERVER_PID=$!
 code=000
 for i in $(seq 1 60); do
@@ -29,18 +29,22 @@ $AB wait 2500
 # helper: find first ref whose snapshot line matches $1
 ref() { $AB snapshot -i 2>/dev/null | rg "$1" | rg -o 'e[0-9]+' | head -1; }
 clickref() { local R; R=$(ref "$1"); if [ -n "$R" ]; then $AB click "@$R" && echo "clicked $1 (@$R)"; else echo "MISS $1"; fi }
+# helper: find first ref whose snapshot line matches $1 (case-insensitive)
+ref_i() { $AB snapshot -i 2>/dev/null | rg -i "$1" | rg -o 'e[0-9]+' | head -1; }
+# poll the a11y snapshot until $1 appears (cold start + cross-region DB can take ~6s)
+waitfor() { local PAT="$1" N="${2:-15}"; for i in $(seq 1 $N); do [ -n "$(ref_i "$PAT")" ] && return 0; $AB wait 1000 >/dev/null 2>&1; done; echo "TIMEOUT waiting for: $PAT"; return 1; }
 
-# ── 1) sign up throwaway user ──
+# ── 1) sign up throwaway user (form: Name, Company, Email, Password) ──
 clickref "Don't have an account" ; $AB wait 800
-NAME_T=$(ref 'textbox' | head -1)
 BOXES=$($AB snapshot -i 2>/dev/null | rg 'textbox' | rg -o 'e[0-9]+')
 echo "textboxes: $BOXES" | tr '\n' ' ' ; echo
-B1=$(echo "$BOXES" | sed -n 1p); B2=$(echo "$BOXES" | sed -n 2p); B3=$(echo "$BOXES" | sed -n 3p)
+B1=$(echo "$BOXES" | sed -n 1p); B2=$(echo "$BOXES" | sed -n 2p); B3=$(echo "$BOXES" | sed -n 3p); B4=$(echo "$BOXES" | sed -n 4p)
 [ -n "$B1" ] && $AB fill "@$B1" "UI Check" >/dev/null
-[ -n "$B2" ] && $AB fill "@$B2" "$TS" >/dev/null
-[ -n "$B3" ] && $AB fill "@$B3" "$TP" >/dev/null
+[ -n "$B2" ] && $AB fill "@$B2" "QA Co" >/dev/null
+[ -n "$B3" ] && $AB fill "@$B3" "$TS" >/dev/null
+[ -n "$B4" ] && $AB fill "@$B4" "$TP" >/dev/null
 clickref "Create account"
-$AB wait 3500
+waitfor "New checklist" 20
 
 # ── 2) New checklist dialog ──
 $AB screenshot $OUT/00-home.png
@@ -49,6 +53,7 @@ $AB wait 1800
 $AB screenshot $OUT/01-picker-cascade.png
 $AB snapshot -i > $OUT/picker-snap.txt 2>&1
 
+waitfor '"Nursing"' 10
 clickref '"Nursing"'
 $AB wait 700
 $AB screenshot $OUT/02-picker-nursing.png
@@ -71,10 +76,12 @@ $AB screenshot $OUT/04-picker-search.png
 clickref "Close"; $AB wait 700
 
 # ── 3) calculator input UX ──
+waitfor "Calculator" 10
 clickref "Calculator"
-$AB wait 1500
+waitfor "bill rate" 10
+$AB wait 800
 $AB screenshot $OUT/05-calc-initial.png
-BILL=$($AB snapshot -i 2>/dev/null | rg 'Bill Rate' | rg -o 'e[0-9]+' | head -1)
+BILL=$(ref_i 'bill rate')
 echo "bill rate: @${BILL:-none}"
 if [ -n "$BILL" ]; then
   $AB click "@$BILL"; $AB wait 200
