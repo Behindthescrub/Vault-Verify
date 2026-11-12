@@ -77,9 +77,18 @@ try {
   const c = await callGsa('city=Devens&state=MA&month=11&year=2027')
   check('city-only path returns 200 (GSA locality match)', c.status === 200, `status=${c.status} loc=${c.body?.perDiem?.location}`)
 
+  // 6. Standard-Rate tier: ZIP 01301 (Greenfield, Franklin County — no specified rate)
+  const d = await callGsa('city=Greenfield&state=MA&zip=01301&month=11&year=2027')
+  const pd3 = d.body?.perDiem
+  check('standard-rate county uses Standard Rate $113/$68/$181/$1,267',
+    pd3?.lodging === 113 && pd3?.meals === 68 && pd3?.daily === 181 && pd3?.weekly === 1267,
+    `got ${pd3?.lodging}/${pd3?.meals}/${pd3?.daily}/${pd3?.weekly}`)
+  check('standard-rate location labeled', /Standard Rate/.test(pd3?.location ?? ''), `got ${pd3?.location}`)
+
   console.log('\nPer Diem for Devens, MA 01434 (Worcester County):')
   console.log(`  FY2027 (current): lodging $${pd.lodging}/night + M&IE $${pd.meals}/day = $${pd.daily}/day = $${pd.weekly}/week`)
   console.log(`  FY2026 (expired): lodging $${pd2.lodging}/night + M&IE $${pd2.meals}/day = $${pd2.daily}/day = $${pd2.weekly}/week`)
+  console.log(`  Standard-Rate comparison (Greenfield 01301): $${pd3.lodging} + $${pd3.meals} = $${pd3.daily}/day = $${pd3.weekly}/week — ${pd3.location}`)
 } catch (e) {
   console.error('SCRIPT ERROR:', e.message)
   process.exitCode = 1

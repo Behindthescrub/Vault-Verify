@@ -52,7 +52,16 @@ export async function fetchPerDiem(opts: {
   const data = await resp.json()
   if (data?.errors?.length) throw new Error(JSON.stringify(data.errors))
 
-  const rate = data?.rates?.[0]?.rate?.[0]
+  // GSA returns the destination's applicable rate FIRST and the universal
+  // "Standard Rate" fallback (city === 'Standard Rate') after it. Prefer the
+  // county-specific row explicitly so a re-ordered response can never make us
+  // quote the fallback for a county that has its own rate; when the county has
+  // no specified rate only the Standard row exists and it is used.
+  const rows: unknown[] = data?.rates?.[0]?.rate ?? []
+  const applicable = rows.find((r) => (r as { city?: unknown })?.city !== 'Standard Rate')
+  const rate = (applicable ?? rows[0]) as
+    | { city?: string; state?: string; meals?: string; months?: { month?: { number: string; value: string }[] } }
+    | undefined
   if (!rate) throw new Error('No Per Diem rate found for this destination/year.')
 
   const monthObj = pickMonth(rate, month)
@@ -62,7 +71,16 @@ export async function fetchPerDiem(opts: {
   const meals = Number(rate.meals) || 0
   const daily = lodging + meals
   const weekly = daily * 7
-  const location = `${rate.city ?? city ?? '—'}${rate.state ? ', ' + rate.state : ''}`
+
+  // Label the tier the way gsa.gov does: county-specific locality, or the
+  // universal fallback ("Standard Rate applies for all locations without
+  // specified rates") shown next to the searched destination.
+  const isStandard = (applicable == null) && rows.length > 0
+  const place = rate.city && rate.city !== 'Standard Rate'
+    ? rate.city
+    : (city ?? (zip ? `ZIP ${zip}` : '—'))
+  const statePart = rate.state ? `, ${rate.state}` : state ? `, ${state}` : ''
+  const location = `${place}${statePart}${isStandard ? ' (Standard Rate)' : ''}`
 
   return { lodging, meals, daily, weekly, location, fiscalYear: year }
 }
