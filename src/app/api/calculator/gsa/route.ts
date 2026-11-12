@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import { fetchPerDiem } from '@/lib/gsa'
+import { fetchPerDiem, currentGsaFiscalYear } from '@/lib/gsa'
 import { getPlatformSettings } from '@/lib/email'
 
 // GET /api/calculator/gsa?city=&state=&zip=&year=&month=
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const city = sp.get('city') ?? undefined
   const state = sp.get('state') ?? undefined
   const zip = sp.get('zip') ?? undefined
-  const year = Number(sp.get('year')) || new Date().getFullYear()
+  const year = Number(sp.get('year')) || currentGsaFiscalYear()
   const month = Number(sp.get('month')) || new Date().getMonth() + 1
 
   try {

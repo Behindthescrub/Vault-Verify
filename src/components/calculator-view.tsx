@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/number-input'
 import { api } from '@/lib/client-api'
 import { computeCalc, money } from '@/lib/calc'
+import { currentGsaFiscalYear } from '@/lib/gsa'
 import type { SavedCalculation, UserSettings } from '@/lib/types'
 import {
   Briefcase, Eye, EyeOff, Loader2, MapPin, Save, Trash2, Upload, Clock4, ExternalLink,
@@ -54,7 +55,7 @@ export function CalculatorView({ settings, onSettingsChange }: Props) {
   const [pdCity, setPdCity] = useState('New York')
   const [pdState, setPdState] = useState('NY')
   const [pdZip, setPdZip] = useState('')
-  const [pdYear, setPdYear] = useState(new Date().getFullYear())
+  const [pdYear, setPdYear] = useState(() => currentGsaFiscalYear())
   const [pdMonth, setPdMonth] = useState(new Date().getMonth() + 1)
   const [pdStatus, setPdStatus] = useState<{ text: string; kind: 'idle' | 'error' | 'success' | 'busy' }>({
     text: 'Fetch live GSA per-diem rates for any destination.',

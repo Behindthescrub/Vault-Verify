@@ -14,6 +14,13 @@ export type PerDiemResult = {
 
 const PD_BASE = 'https://api.gsa.gov/travel/perdiem/v2/rates/'
 
+// GSA fiscal years run Oct 1 → Sep 30. In Oct–Dec of a calendar year the
+// current fiscal year is the NEXT calendar year (e.g. Nov 2026 → FY2027);
+// defaulting to the calendar year would fetch the expired table.
+export function currentGsaFiscalYear(now: Date = new Date()): number {
+  return now.getMonth() + 1 >= 10 ? now.getFullYear() + 1 : now.getFullYear()
+}
+
 function pickMonth(rate: { months?: { month?: { number: string; value: string }[] } }, month: number) {
   const months = rate.months?.month ?? []
   return months.find((m) => Number(m.number) === month)
